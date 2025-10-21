@@ -4,19 +4,27 @@ using UnityEngine;
 public class PauseMenuToggle : MonoBehaviour
 {
     private CanvasGroup canvasGroup;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
+
+        if (canvasGroup == null)
+        {
+            Debug.LogError("CanvasGroup component not found.");
+        }
+    }
+
+    void Start()
+    {
         canvasGroup.interactable = false;
         canvasGroup.blocksRaycasts = false;
         canvasGroup.alpha = 0f;
+        Time.timeScale = 1f;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        Debug.Log($"Pause Menu active: {canvasGroup.interactable}, Raycasts: {canvasGroup.blocksRaycasts}, Alpha: {canvasGroup.alpha}");
         if (Input.GetKeyUp(KeyCode.Escape))
         {
             if (canvasGroup.interactable)
@@ -24,6 +32,7 @@ public class PauseMenuToggle : MonoBehaviour
                 canvasGroup.interactable = false;
                 canvasGroup.blocksRaycasts = false;
                 canvasGroup.alpha = 0f;
+
                 Time.timeScale = 1f;
             }
             else
@@ -31,6 +40,7 @@ public class PauseMenuToggle : MonoBehaviour
                 canvasGroup.interactable = true;
                 canvasGroup.blocksRaycasts = true;
                 canvasGroup.alpha = 1f;
+                
                 Time.timeScale = 0f;
             }
         }
