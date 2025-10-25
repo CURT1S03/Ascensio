@@ -166,7 +166,7 @@ public class BasicControlScript : MonoBehaviour
 
             anim.SetFloat("Vert",  targetVert,  0.06f, Time.deltaTime);
             anim.SetFloat("State", targetState, 0.06f, Time.deltaTime);
-            anim.SetBool("isFalling", false);
+            //anim.SetBool("isFalling", false);
             // or: anim.SetBool("Grounded", true);
             anim.speed = 1f;
         }
