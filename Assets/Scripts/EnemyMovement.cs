@@ -22,6 +22,8 @@ public class EnemyMovement : MonoBehaviour
     // --- Private Variables ---
     private NavMeshAgent navMeshAgent;
 
+// remove me
+
     void Awake()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
