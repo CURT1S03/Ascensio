@@ -3,4 +3,4 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class MinionFootstepEvent: UnityEvent<Vector3>{}
+public class HitGroundEvent: UnityEvent<Vector3, float>{}
