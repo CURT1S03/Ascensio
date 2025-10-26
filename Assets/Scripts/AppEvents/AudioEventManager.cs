@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -7,71 +9,35 @@ public class AudioEventManager : MonoBehaviour
 {
 
     public EventSound3D eventSound3DPrefab;
-
-    public AudioClip[] minionJabberAudio = null;
-    public AudioClip[] boxAudio = null;
     public AudioClip playerLandsAudio;
-    public AudioClip explosionAudio;
-    public AudioClip deathAudio;
-    public AudioClip bombBounceAudio;
-    public AudioClip jumpAudio;
-    public AudioClip gruntAudio;
-    public AudioClip minionDeathAudio;
-    public AudioClip minionOuchAudio;
-    public AudioClip minionSpawnAudio;
-    public AudioClip[] minionFootstepAudio;
-    public AudioClip punchAudio;
-
-    private UnityAction<Vector3,float> boxCollisionEventListener;
-
-    private UnityAction<Vector3, float> playerLandsEventListener;
-
-    private UnityAction<Vector3, float> minionLandsEventListener;
-
-    private UnityAction<Vector3> minionJabberEventListener;
-
-    private UnityAction<Vector3> explosionEventListener;
-
-    private UnityAction<Vector3> bombBounceEventListener;
-
-    private UnityAction<Vector3> jumpEventListener;
-
-    private UnityAction<GameObject> deathEventListener;
-
-    private UnityAction<Vector3,MinionScript> minionDeathEventListener;
-
-    private UnityAction<MinionScript> minionSpawnEventListener;
-
-    private UnityAction<Vector3> minionFootstepEventListener;
-
-    private UnityAction<Vector3> minionOuchEventListener;
+    public AudioClip[] grassStepAudio;
+    public AudioClip[] hardStepAudio;
+    public AudioClip hitAudio;
+    public AudioClip hissAudio;
+    public AudioClip[] growlAudio;
+    public AudioClip roarAudio;
+    private UnityAction<Vector3, float> hitGroundEventListener;
+    private UnityAction<Vector3> footstepEventListener;
+    private UnityAction<Vector3, float> enemyCollisionEventListener;
+    private UnityAction<Vector3> hissEventListener;
+    private UnityAction<Vector3> tigerGrowlEventListener;
+    private EventSound3D growlEventSound;
+    private UnityAction<Vector3> tigerRoarEventListener;
 
     void Awake()
     {
+        hitGroundEventListener = new UnityAction<Vector3, float>(HitGroundEventHandler);
 
-        boxCollisionEventListener = new UnityAction<Vector3,float>(boxCollisionEventHandler);
+        footstepEventListener = new UnityAction<Vector3>(FootstepEventHandler);
 
-        playerLandsEventListener = new UnityAction<Vector3, float>(playerLandsEventHandler);
+        enemyCollisionEventListener = new UnityAction<Vector3, float>(EnemyCollisionEventHandler);
 
-        minionLandsEventListener = new UnityAction<Vector3, float>(minionLandsEventHandler);
+        hissEventListener = new UnityAction<Vector3>(HissEventHandler);
 
-        explosionEventListener = new UnityAction<Vector3>(explosionEventHandler);
+        tigerGrowlEventListener = new UnityAction<Vector3>(TigerGrowlEventHandler);
 
-        minionJabberEventListener = new UnityAction<Vector3>(minionJabberEventHandler);
+        tigerRoarEventListener = new UnityAction<Vector3>(TigerRoarEventHandler);
 
-        bombBounceEventListener = new UnityAction<Vector3>(bombBounceEventHandler);
-
-        jumpEventListener = new UnityAction<Vector3>(jumpEventHandler);
-
-        deathEventListener = new UnityAction<GameObject>(deathEventHandler);
-
-        minionDeathEventListener = new UnityAction<Vector3,MinionScript>(minionDeathEventHandler);
-
-        minionSpawnEventListener = new UnityAction<MinionScript>(minionSpawnEventHandler);
-
-        minionFootstepEventListener = new UnityAction<Vector3>(minionFootstepEventHandler);
-
-        minionOuchEventListener = new UnityAction<Vector3>(minionOuchEventHandler);
     }
 
 
@@ -80,317 +46,168 @@ public class AudioEventManager : MonoBehaviour
     {
 
 
-        			
+
     }
 
 
     void OnEnable()
     {
-
-        EventManager.StartListening<BoxCollisionEvent, Vector3,float>(boxCollisionEventListener);
-        EventManager.StartListening<PlayerLandsEvent, Vector3, float>(playerLandsEventListener);
-        EventManager.StartListening<MinionLandsEvent, Vector3, float>(minionLandsEventListener);
-        EventManager.StartListening<MinionJabberEvent, Vector3>(minionJabberEventListener);
-        EventManager.StartListening<ExplosionEvent, Vector3>(explosionEventListener);
-        EventManager.StartListening<BombBounceEvent, Vector3>(bombBounceEventListener);
-        EventManager.StartListening<JumpEvent, Vector3>(jumpEventListener);
-        EventManager.StartListening<DeathEvent, GameObject>(deathEventListener);
-        EventManager.StartListening<MinionDeathEvent, Vector3, MinionScript>(minionDeathEventListener);
-        EventManager.StartListening<MinionSpawnEvent, MinionScript>(minionSpawnEventListener);
-        EventManager.StartListening<MinionFootstepEvent, Vector3>(minionFootstepEventListener);
-        EventManager.StartListening<MinionOuchEvent, Vector3>(minionOuchEventListener);
-
+        EventManager.StartListening<HitGroundEvent, Vector3, float>(hitGroundEventListener);
+        EventManager.StartListening<FootstepEvent, Vector3>(footstepEventListener);
+        EventManager.StartListening<EnemyCollisionEvent, Vector3, float>(enemyCollisionEventListener);
+        EventManager.StartListening<HissEvent, Vector3>(hissEventListener);
+        EventManager.StartListening<TigerGrowlEvent, Vector3>(tigerGrowlEventListener);
+        EventManager.StartListening<TigerRoarEvent, Vector3>(tigerRoarEventListener);
     }
 
     void OnDisable()
     {
-
-        EventManager.StopListening<BoxCollisionEvent, Vector3,float>(boxCollisionEventListener);
-        EventManager.StopListening<PlayerLandsEvent, Vector3, float>(playerLandsEventListener);
-        EventManager.StopListening<MinionLandsEvent, Vector3, float>(minionLandsEventListener);
-        EventManager.StopListening<MinionJabberEvent, Vector3>(minionJabberEventListener);
-        EventManager.StopListening<ExplosionEvent, Vector3>(explosionEventListener);
-        EventManager.StopListening<BombBounceEvent, Vector3>(bombBounceEventListener);
-        EventManager.StopListening<JumpEvent, Vector3>(jumpEventListener);
-        EventManager.StopListening<DeathEvent, GameObject>(deathEventListener);
-        EventManager.StopListening<MinionDeathEvent, Vector3, MinionScript>(minionDeathEventListener);
-        EventManager.StopListening<MinionSpawnEvent, MinionScript>(minionSpawnEventListener);
-        EventManager.StopListening<MinionFootstepEvent, Vector3>(minionFootstepEventListener);
-        EventManager.StopListening<MinionOuchEvent, Vector3>(minionOuchEventListener);
+        EventManager.StopListening<HitGroundEvent, Vector3, float>(hitGroundEventListener);
+        EventManager.StopListening<FootstepEvent, Vector3>(footstepEventListener);
+        EventManager.StopListening<EnemyCollisionEvent, Vector3, float>(enemyCollisionEventListener);
+        EventManager.StopListening<HissEvent, Vector3>(hissEventListener);
+        EventManager.StopListening<TigerGrowlEvent, Vector3>(tigerGrowlEventListener);
+        EventManager.StopListening<TigerRoarEvent, Vector3>(tigerRoarEventListener);
     }
 
-
-	
- 
-
-    void boxCollisionEventHandler(Vector3 worldPos, float impactForce)
-    {
-        //AudioSource.PlayClipAtPoint(this.boxAudio, worldPos);
-
-        const float halfSpeedRange = 0.2f;
-
-        EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
-        snd.audioSrc.clip = this.boxAudio[Random.Range(0,boxAudio.Length)];
-
-        snd.audioSrc.pitch = Random.Range(1f-halfSpeedRange, 1f+halfSpeedRange);
-
-        snd.audioSrc.minDistance = Mathf.Lerp(1f, 8f, impactForce /200f);
-        snd.audioSrc.maxDistance = 100f;
-
-        snd.audioSrc.Play();
-    }
-
-    void playerLandsEventHandler(Vector3 worldPos, float collisionMagnitude)
+    void HitGroundEventHandler(Vector3 worldPos, float collisionMagnitude)
     {
         //AudioSource.PlayClipAtPoint(this.explosionAudio, worldPos, 1f);
 
         if (eventSound3DPrefab)
         {
-            if (collisionMagnitude > 300f)
+            //minimum force required to play land sound effect volume
+            float minForce = .5f;
+            //force required for maximum land sound effect volume
+            float maxForce = 60f;
+            float maxVolume = 1f;
+            if (collisionMagnitude > minForce)
             {
-
+                //TO-DO: add terrain checking (see footstepEventHandler)
                 EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
 
+                //Use a linear scale to modify volume based on collision magnitude
+                //Debug.Log("Force: " + collisionMagnitude + " Volume: " + (Mathf.Min(collisionMagnitude, maxForce) - minForce) / (maxForce - minForce) * maxVolume);
+                snd.audioSrc.volume = (Mathf.Min(collisionMagnitude, maxForce) - minForce) / (maxForce - minForce) * maxVolume;
                 snd.audioSrc.clip = this.playerLandsAudio;
 
                 snd.audioSrc.minDistance = 5f;
                 snd.audioSrc.maxDistance = 100f;
 
                 snd.audioSrc.Play();
-
-                if (collisionMagnitude > 500f)
-                {
-
-                    EventSound3D snd2 = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
-                    snd2.audioSrc.clip = this.gruntAudio;
-
-                    snd2.audioSrc.minDistance = 5f;
-                    snd2.audioSrc.maxDistance = 100f;
-
-                    snd2.audioSrc.Play();
-                }
             }
-
-
         }
     }
 
-    void minionLandsEventHandler(Vector3 worldPos, float collisionMagnitude)
+    void FootstepEventHandler(Vector3 pos)
     {
-        //AudioSource.PlayClipAtPoint(this.explosionAudio, worldPos, 1f);
+
+        //Get terrain
+        //checkTerrainTexture.GetTerrainTexture();
+        // When we implement terrains later, can access terrain with checkTerrainTexture.t
+        //      and change sound accordingly
+        // TO-DO: figure out how to get call GetTerrainTexture from the correct GameObject
 
         if (eventSound3DPrefab)
         {
-            if (collisionMagnitude > 300f)
+            EventSound3D snd = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
+
+            snd.audioSrc.pitch = UnityEngine.Random.Range(.9f, 1.1f);
+            snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
+
+            snd.audioSrc.minDistance = 5f;
+            snd.audioSrc.maxDistance = 100f;
+
+            snd.audioSrc.Play();
+        }
+
+    }
+
+    void EnemyCollisionEventHandler(Vector3 worldPos, float collisionMagnitude)
+    {
+        if (eventSound3DPrefab)
+        {
+            EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
+            snd.audioSrc.clip = this.hitAudio;
+
+            snd.audioSrc.minDistance = 5f;
+            snd.audioSrc.maxDistance = 100f;
+
+            snd.audioSrc.Play();
+        }
+    }
+
+    void HissEventHandler(Vector3 pos)
+    {
+        if (hissAudio)
+        {
+            EventSound3D snd = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
+
+            snd.audioSrc.minDistance = 5f;
+            snd.audioSrc.maxDistance = 100f;
+
+            snd.audioSrc.clip = this.hissAudio;
+            snd.audioSrc.Play();
+        }
+    }
+
+    void TigerGrowlEventHandler(Vector3 pos)
+    {
+        if (eventSound3DPrefab)
+        {
+            //Don't play a sound effect if one is already playing
+            if (growlEventSound)
+                if (growlEventSound.audioSrc.isPlaying)
+                    return;
+            growlEventSound = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
+            growlEventSound.audioSrc.clip = this.growlAudio[UnityEngine.Random.Range(0, growlAudio.Length)];
+
+            growlEventSound.audioSrc.minDistance = 5f;
+            growlEventSound.audioSrc.maxDistance = 100f;
+
+            Debug.Log("Playing growl");
+            growlEventSound.audioSrc.Play();
+        }
+    }
+
+    void TigerRoarEventHandler(Vector3 pos)
+    {
+        if (roarAudio && eventSound3DPrefab)
+        {
+            //if it's making noise, fade that out first
+            if (growlEventSound)
             {
-
-                EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
-                snd.audioSrc.clip = this.punchAudio;
-
-                snd.audioSrc.minDistance = 5f;
-                snd.audioSrc.maxDistance = 100f;
-
-                snd.audioSrc.Play();
-
-                if (collisionMagnitude > 500f)
-                {
-
-                    EventSound3D snd2 = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
-                    snd2.audioSrc.clip = this.minionOuchAudio;
-
-                    snd2.audioSrc.minDistance = 5f;
-                    snd2.audioSrc.maxDistance = 100f;
-
-                    snd2.audioSrc.Play();
-                }
+                StartCoroutine(FadeOut(growlEventSound.audioSrc, .5f));
             }
 
+            growlEventSound = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
 
+            growlEventSound.audioSrc.minDistance = 5f;
+            growlEventSound.audioSrc.maxDistance = 100f;
+
+            Debug.Log("Playing roar");
+            growlEventSound.audioSrc.clip = this.roarAudio;
+            growlEventSound.audioSrc.Play();
         }
     }
 
-    void minionJabberEventHandler(Vector3 worldPos)
+    IEnumerator FadeOut(AudioSource src, float fadeTime)
     {
-        //AudioSource.PlayClipAtPoint(this.explosionAudio, worldPos, 1f);
-
-        if (eventSound3DPrefab)
+        if (src.isPlaying)
         {
-
-            EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
-            snd.gameObject.AddComponent<MinionAudioCancelOnDeath>();
-
-            snd.audioSrc.clip = this.minionJabberAudio[Random.Range(0, this.minionJabberAudio.Length)];
-
-            snd.audioSrc.minDistance = 5f;
-            snd.audioSrc.maxDistance = 100f;
-
-            snd.audioSrc.Play();
-        }
-    }
-
-    void explosionEventHandler(Vector3 worldPos)
-    {
-        //AudioSource.PlayClipAtPoint(this.explosionAudio, worldPos, 1f);
-
-        if (eventSound3DPrefab)
-        {
+            Debug.Log("Growl playing! Fading out.");
+            float speed = src.volume / (10f * fadeTime);
+            while (src.volume > 0)
+            {
+                src.volume -= speed * .1f;
+                yield return new WaitForSeconds(.1f);
+                //if the AudioSource no longer exists after waiting, exit the loop
+                if (!src)
+                    break;
+            }
             
-            EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
-            snd.audioSrc.clip = this.explosionAudio;
-
-            snd.audioSrc.minDistance = 50f;
-            snd.audioSrc.maxDistance = 500f;
-
-            snd.audioSrc.Play();
+            if (src)
+                src.Stop();
         }
-    }
-
-    void bombBounceEventHandler(Vector3 worldPos)
-    {
-        //AudioSource.PlayClipAtPoint(this.explosionAudio, worldPos, 1f);
-
-        if (eventSound3DPrefab)
-        {
-
-            EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
-            snd.audioSrc.clip = this.bombBounceAudio;
-
-            snd.audioSrc.minDistance = 10f;
-            snd.audioSrc.maxDistance = 500f;
-
-            snd.audioSrc.Play();
-        }
-    }
-
-    void jumpEventHandler(Vector3 worldPos)
-    {
-        //AudioSource.PlayClipAtPoint(this.explosionAudio, worldPos, 1f);
-
-        if (eventSound3DPrefab)
-        {
-
-            EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
-            snd.audioSrc.clip = this.jumpAudio;
-
-            snd.audioSrc.minDistance = 5f;
-            snd.audioSrc.maxDistance = 100f;
-
-            snd.audioSrc.Play();
-        }
-    }
-
-    void deathEventHandler(GameObject go)
-    {
-        //AudioSource.PlayClipAtPoint(this.explosionAudio, worldPos, 1f);
-
-        if (eventSound3DPrefab)
-        {
-
-            EventSound3D snd = Instantiate(eventSound3DPrefab, go.transform);
-
-            snd.audioSrc.clip = this.deathAudio;
-
-            snd.audioSrc.minDistance = 5f;
-            snd.audioSrc.maxDistance = 100f;
-
-            snd.audioSrc.Play();
-        }
-    }
-
-    void minionDeathEventHandler(Vector3 pos, MinionScript ms)
-    {
-  
-        if (minionDeathAudio)
-        {
-
-            EventSound3D snd = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
-
-            snd.audioSrc.clip = this.minionDeathAudio;
-
-            snd.audioSrc.minDistance = 5f;
-            snd.audioSrc.maxDistance = 100f;
-
-            snd.audioSrc.Play();
-        }
-
-    }
-
-
-    void minionOuchEventHandler(Vector3 pos)
-    {
-
-
-        if (punchAudio)
-        {
-
-            EventSound3D snd = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
-
-            snd.audioSrc.clip = this.punchAudio;
-
-            snd.audioSrc.minDistance = 5f;
-            snd.audioSrc.maxDistance = 100f;
-
-            snd.audioSrc.Play();
-        }
-
-  
-        if (minionOuchAudio)
-        {
-
-            EventSound3D snd2 = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
-
-            snd2.audioSrc.clip = this.minionOuchAudio;
-
-            snd2.audioSrc.minDistance = 5f;
-            snd2.audioSrc.maxDistance = 100f;
-
-            snd2.audioSrc.Play();
-        }
-    }
-
-
-    void minionSpawnEventHandler(MinionScript minion) {
-
-        if (minionSpawnAudio)
-        {
-
-            EventSound3D snd = Instantiate(eventSound3DPrefab, minion.transform.position, Quaternion.identity, null);
-
-            snd.audioSrc.clip = this.minionSpawnAudio;
-
-            snd.audioSrc.minDistance = 5f;
-            snd.audioSrc.maxDistance = 100f;
-
-            snd.audioSrc.Play();
-        }
-
-
-    }
-
-
-    void minionFootstepEventHandler(Vector3 pos) {
-
-        if (minionSpawnAudio)
-        {
-
-            EventSound3D snd = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
-
-            snd.audioSrc.clip = this.minionFootstepAudio[Random.Range(0, minionFootstepAudio.Length)];
-
-            snd.audioSrc.minDistance = 5f;
-            snd.audioSrc.maxDistance = 100f;
-
-            snd.audioSrc.Play();
-        }
-
-
     }
 }

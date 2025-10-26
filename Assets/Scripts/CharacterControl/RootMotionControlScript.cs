@@ -184,7 +184,7 @@ public class RootMotionControlScript : MonoBehaviour
             ++groundContactCount;
 
             // Generate an event that might play a sound, generate a particle effect, etc.
-            EventManager.TriggerEvent<PlayerLandsEvent, Vector3, float>(collision.contacts[0].point, collision.impulse.magnitude);
+            EventManager.TriggerEvent<HitGroundEvent, Vector3, float>(collision.contacts[0].point, collision.impulse.magnitude);
 
         }
 						
