@@ -72,7 +72,7 @@ public class EnemyMovement : MonoBehaviour
                 //Only growl if it's been enough time since the last one
                 if (Time.time - growlStartTime > growlCooldown)
                 {
-                    Debug.Log("Trigger Growl");
+                    //Debug.Log("Trigger Growl");
                     EventManager.TriggerEvent<TigerGrowlEvent, Vector3>(this.gameObject.transform.position);
                     growlStartTime = Time.time;
                     growlCooldown = Random.Range(3f, 6f);
@@ -113,20 +113,19 @@ public class EnemyMovement : MonoBehaviour
         bool hit = Physics.Raycast(player.position, transform.TransformDirection(Vector3.down), out playerHit, 20f, groundLayer);
         if (hit)
         {
-            Debug.Log("Hit: " + playerHit.point);
-            Debug.DrawRay(player.position, transform.TransformDirection(Vector3.down) * playerHit.distance, Color.red);
+            //Debug.Log("Hit: " + playerHit.point);
+            //Debug.DrawRay(player.position, transform.TransformDirection(Vector3.down) * playerHit.distance, Color.red);
             if (aiState == AIState.chase && aiHit.collider.gameObject != playerHit.collider.gameObject)
             {
-                Debug.Log("Playing roar");
                 EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
                 //set the growl cooldown so it doesn't immediately growl if the player jumps back on the platform
                 growlStartTime = Time.time;
                 growlCooldown = Random.Range(3f, 6f);
             }
         }
+        //this could cause problems, but it works for some unknown reason so I'm leaving it in for now
         else
         {
-            Debug.Log("Playing roar");
             EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
             growlStartTime = Time.time;
             growlCooldown = Random.Range(3f, 6f);

@@ -165,7 +165,7 @@ public class AudioEventManager : MonoBehaviour
             growlEventSound.audioSrc.minDistance = 5f;
             growlEventSound.audioSrc.maxDistance = 100f;
 
-            Debug.Log("Playing growl");
+            //Debug.Log("Playing growl");
             growlEventSound.audioSrc.Play();
         }
     }
@@ -185,7 +185,7 @@ public class AudioEventManager : MonoBehaviour
             growlEventSound.audioSrc.minDistance = 5f;
             growlEventSound.audioSrc.maxDistance = 100f;
 
-            Debug.Log("Playing roar");
+            //Debug.Log("Playing roar");
             growlEventSound.audioSrc.clip = this.roarAudio;
             growlEventSound.audioSrc.Play();
         }
