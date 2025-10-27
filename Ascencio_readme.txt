@@ -7,10 +7,6 @@ Assignment Packaging and Submission Requirements
 i. START SCENE FILE
 =============================================================================
 Main Scene: Assets/Scenes/SampleScene.unity
-
-Instructions:
-5. Press Play button to start the game
-
 Alternative scenes available:
 - Assets/Scenes/MainMenu.unity (Main menu scene)
 - Assets/Scenes/JiwonScene.unity (Additional test scene)
@@ -63,16 +59,14 @@ iii. KNOWN PROBLEM AREAS
 =============================================================================
 
 CURRENT KNOWN ISSUES:
-1. [Add any known bugs or issues]
-2. [Performance considerations]
-3. [Platform-specific issues if any]
-4. [Asset loading issues if any]
+1. The starts to the treehouse has some collider issue causing the character difficult to walk up.
+2. The village is for backgournd only, it has no gameplay.
+3. Camera needs to follow better on the character when it backs or turns. 
 
 POTENTIAL AREAS FOR IMPROVEMENT:
 1. Animation transitions could be smoother
 2. Camera collision with environment objects
 3. Physics tuning for character movement
-4. UI responsiveness on different screen resolutions
 
 TESTING RECOMMENDATIONS:
 - Test character movement on all platform types
@@ -94,19 +88,23 @@ Assets/
 =============================================================================
 VERSION INFORMATION
 =============================================================================
-Unity Version: [Add your Unity version]
+Unity Version: 6000.0fff1
 Git Repository: https://github.gatech.edu/jlee3973/Ascencio
 Last Updated: October 27, 2025
-Branch: characters_anims
+Branch: main
 
 =============================================================================
-TEAM MEMBERS
+TEAM MEMBERS:
+Curtis Cao
+Zade Feng
+Riley Vaupel
+Jiwon Lee
+Samantha Taing
 =============================================================================
 
 =============================================================================
 iv. MANIFEST OF FILES AUTHORED BY EACH TEAMMATE
 =============================================================================
-
 Curtis Cao:
 - Responsibilities: Character basic control script, character camera system, asset integration, level design
 - Assets Implemented:
@@ -116,21 +114,21 @@ Curtis Cao:
   * Assets/Models/lowpoly-village/ (imported and integrated village assets)
   * Assets/Scenes/SampleScene.unity (first level design and layout)
   * Various supporting environment assets and materials
-
+ 
 Zade Feng:
 - Responsibilities: Technical algorithms, AI implementation, character jump mechanics
 - Assets Implemented:
   * Jump functionality implementation in character controller
   * Technical algorithm scripts for character physics
   * AI-related code components
-
-Riley M:
+ 
+Riley Vaupel:
 - Responsibilities: Project organization, sound design, audio implementation
 - Assets Implemented:
   * Audio system scripts
   * Sound effect assets and audio management
   * Project documentation and goal specifications
-
+ 
 Jiwon Lee:
 - Responsibilities: UI system design and implementation
 - Assets Implemented:
@@ -139,7 +137,7 @@ Jiwon Lee:
   * Assets/Scenes/MainMenu.unity (main menu scene)
   * UI canvas components and menu systems
   * TextMesh Pro UI integration
-
+ 
 Samantha Taing:
 - Responsibilities: Main character model, animations, and character scripts
 - Assets Implemented:
@@ -148,7 +146,6 @@ Samantha Taing:
   * Assets/ithappy/Animals_FREE/Scripts/CreatureMover.cs (character movement script)
   * Character animation files (idle, walk, run animations)
   * Character physics and collision scripts
-
 =============================================================================
 END OF README
 =============================================================================
