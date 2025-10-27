@@ -14,10 +14,11 @@ public class AudioEventManager : MonoBehaviour
     public AudioClip[] hardStepAudio;
     public AudioClip hitAudio;
     public AudioClip hissAudio;
+    private EventSound3D hissEventSound;
     public AudioClip[] growlAudio;
     public AudioClip roarAudio;
     private UnityAction<Vector3, float> hitGroundEventListener;
-    private UnityAction<Vector3> footstepEventListener;
+    private UnityAction<Vector3, float> footstepEventListener;
     private UnityAction<Vector3, float> enemyCollisionEventListener;
     private UnityAction<Vector3> hissEventListener;
     private UnityAction<Vector3> tigerGrowlEventListener;
@@ -28,7 +29,7 @@ public class AudioEventManager : MonoBehaviour
     {
         hitGroundEventListener = new UnityAction<Vector3, float>(HitGroundEventHandler);
 
-        footstepEventListener = new UnityAction<Vector3>(FootstepEventHandler);
+        footstepEventListener = new UnityAction<Vector3, float>(FootstepEventHandler);
 
         enemyCollisionEventListener = new UnityAction<Vector3, float>(EnemyCollisionEventHandler);
 
@@ -53,7 +54,7 @@ public class AudioEventManager : MonoBehaviour
     void OnEnable()
     {
         EventManager.StartListening<HitGroundEvent, Vector3, float>(hitGroundEventListener);
-        EventManager.StartListening<FootstepEvent, Vector3>(footstepEventListener);
+        EventManager.StartListening<FootstepEvent, Vector3, float>(footstepEventListener);
         EventManager.StartListening<EnemyCollisionEvent, Vector3, float>(enemyCollisionEventListener);
         EventManager.StartListening<HissEvent, Vector3>(hissEventListener);
         EventManager.StartListening<TigerGrowlEvent, Vector3>(tigerGrowlEventListener);
@@ -63,7 +64,7 @@ public class AudioEventManager : MonoBehaviour
     void OnDisable()
     {
         EventManager.StopListening<HitGroundEvent, Vector3, float>(hitGroundEventListener);
-        EventManager.StopListening<FootstepEvent, Vector3>(footstepEventListener);
+        EventManager.StopListening<FootstepEvent, Vector3, float>(footstepEventListener);
         EventManager.StopListening<EnemyCollisionEvent, Vector3, float>(enemyCollisionEventListener);
         EventManager.StopListening<HissEvent, Vector3>(hissEventListener);
         EventManager.StopListening<TigerGrowlEvent, Vector3>(tigerGrowlEventListener);
@@ -77,7 +78,7 @@ public class AudioEventManager : MonoBehaviour
         if (eventSound3DPrefab)
         {
             //minimum force required to play land sound effect volume
-            float minForce = .5f;
+            float minForce = 6f;
             //force required for maximum land sound effect volume
             float maxForce = 60f;
             float maxVolume = 1f;
@@ -91,6 +92,8 @@ public class AudioEventManager : MonoBehaviour
                 snd.audioSrc.volume = (Mathf.Min(collisionMagnitude, maxForce) - minForce) / (maxForce - minForce) * maxVolume;
                 snd.audioSrc.clip = this.playerLandsAudio;
 
+                Debug.Log(Time.time + " land magnitude: " + collisionMagnitude);
+
                 snd.audioSrc.minDistance = 5f;
                 snd.audioSrc.maxDistance = 100f;
 
@@ -99,7 +102,7 @@ public class AudioEventManager : MonoBehaviour
         }
     }
 
-    void FootstepEventHandler(Vector3 pos)
+    void FootstepEventHandler(Vector3 pos, float footstepWeight)
     {
 
         //Get terrain
@@ -112,7 +115,12 @@ public class AudioEventManager : MonoBehaviour
         {
             EventSound3D snd = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
 
-            snd.audioSrc.pitch = UnityEngine.Random.Range(.9f, 1.1f);
+            // Avoid divide by 0 error
+            if (footstepWeight == 0)
+                return;
+            snd.audioSrc.pitch = UnityEngine.Random.Range(.9f, 1.1f) / footstepWeight * 1.2f;
+
+            snd.audioSrc.volume = Mathf.Clamp(footstepWeight, 0, 2);
             snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
 
             snd.audioSrc.minDistance = 5f;
@@ -129,6 +137,13 @@ public class AudioEventManager : MonoBehaviour
         {
             EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
             snd.audioSrc.clip = this.hitAudio;
+            
+            float maxForce = .4f;
+            float minForce = .025f;
+            float maxVolume = 1f;
+
+            // Scale volume based on collsion force
+            snd.audioSrc.volume = (Mathf.Min(collisionMagnitude, maxForce) - minForce) / (maxForce - minForce) * maxVolume;
 
             snd.audioSrc.minDistance = 5f;
             snd.audioSrc.maxDistance = 100f;
@@ -141,13 +156,16 @@ public class AudioEventManager : MonoBehaviour
     {
         if (hissAudio)
         {
-            EventSound3D snd = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
+            if (hissEventSound)
+                if (hissEventSound.audioSrc.isPlaying)
+                    return;
+            hissEventSound = Instantiate(eventSound3DPrefab, pos, Quaternion.identity, null);
 
-            snd.audioSrc.minDistance = 5f;
-            snd.audioSrc.maxDistance = 100f;
+            hissEventSound.audioSrc.minDistance = 5f;
+            hissEventSound.audioSrc.maxDistance = 100f;
 
-            snd.audioSrc.clip = this.hissAudio;
-            snd.audioSrc.Play();
+            hissEventSound.audioSrc.clip = this.hissAudio;
+            hissEventSound.audioSrc.Play();
         }
     }
 

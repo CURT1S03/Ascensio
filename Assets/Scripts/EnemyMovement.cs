@@ -98,23 +98,24 @@ public class EnemyMovement : MonoBehaviour
 
         // Raycast down from the Player to find its ground.
         RaycastHit playerHit;
-        bool playerIsGrounded = Physics.Raycast(player.position, transform.TransformDirection(Vector3.down), out playerHit, groundCheckDistance, groundLayer);
-
-        // They are on the same platform if both are grounded AND the colliders they are standing on are the same object.
-        if (aiIsGrounded && playerIsGrounded && aiHit.collider.gameObject == playerHit.collider.gameObject)
-        {
-            // Set AI state to chase (if it is not already)
-            if (aiState != AIState.chase)
-                aiState = AIState.chase;
-            return;
-        }
-
-        // If tiger was chasing the player & they leave its range, roar
-        bool hit = Physics.Raycast(player.position, transform.TransformDirection(Vector3.down), out playerHit, 20f, groundLayer);
+        bool hit = Physics.Raycast(player.position, transform.TransformDirection(Vector3.down), out playerHit, Mathf.Infinity, groundLayer);
+    
+        //Debug.Log("Distance to hit: " + Vector3.Distance(player.position, playerHit.point));
         if (hit)
         {
-            //Debug.Log("Hit: " + playerHit.point);
+            bool playerIsGrounded = playerHit.distance < groundCheckDistance;
             //Debug.DrawRay(player.position, transform.TransformDirection(Vector3.down) * playerHit.distance, Color.red);
+            // They are on the same platform if both are grounded AND the colliders they are standing on are the same object.
+            if (aiIsGrounded && playerIsGrounded && aiHit.collider.gameObject == playerHit.collider.gameObject)
+            {
+                // Set AI state to chase (if it is not already)
+                if (aiState != AIState.chase)
+                    aiState = AIState.chase;
+                return;
+            }
+
+            //Debug.Log("Hit: " + playerHit.point);
+            
             if (aiState == AIState.chase && aiHit.collider.gameObject != playerHit.collider.gameObject)
             {
                 EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
@@ -123,8 +124,10 @@ public class EnemyMovement : MonoBehaviour
                 growlCooldown = Random.Range(3f, 6f);
             }
         }
-        //this could cause problems, but it works for some unknown reason so I'm leaving it in for now
-        else
+
+        // If the player raycast doesn't hit the same frame that the aiState is chase, play roar
+        // maybe this will cause problems, but it works for some unknown reason so I'm leaving it in for now
+        else if (aiState == AIState.chase)
         {
             EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
             growlStartTime = Time.time;
