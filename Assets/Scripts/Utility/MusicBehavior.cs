@@ -6,12 +6,10 @@ public class MusicBehavior : MonoBehaviour
     private AudioSource music;
     private bool keepFadingIn = false;
     private bool keepFadingOut = false;
-    
-    [Header("Fade Time")]
+
     [Tooltip("Length of music fade in/out in seconds")]
     public float fadeTime = 1;
 
-    [Header("Max Volume")]
     [Tooltip("Maximum Music Volume")]
     public float maxVolume = 1;
 
