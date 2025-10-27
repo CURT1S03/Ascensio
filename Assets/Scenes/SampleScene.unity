@@ -1445,6 +1445,9 @@ MonoBehaviour:
     m_Bits: 1
   groundCheckDistance: 1.5
   aiState: 0
+  anim: {fileID: 447009202}
+  damp: 0.1
+  runThreshold: 3
 --- !u!195 &447009198
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1543,7 +1546,7 @@ Animator:
   m_GameObject: {fileID: 447009196}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2a9f6ed7e1a7d62488f3aef53523abe7, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
