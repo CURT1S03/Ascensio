@@ -40,6 +40,8 @@ public class EnemyMovement : MonoBehaviour
     private float growlCooldown = 6;
     private float growlStartTime = 0;
 
+// remove me
+
     void Awake()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
