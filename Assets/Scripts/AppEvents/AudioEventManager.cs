@@ -88,11 +88,10 @@ public class AudioEventManager : MonoBehaviour
                 EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
 
                 //Use a linear scale to modify volume based on collision magnitude
-                //Debug.Log("Force: " + collisionMagnitude + " Volume: " + (Mathf.Min(collisionMagnitude, maxForce) - minForce) / (maxForce - minForce) * maxVolume);
                 snd.audioSrc.volume = (Mathf.Min(collisionMagnitude, maxForce) - minForce) / (maxForce - minForce) * maxVolume;
                 snd.audioSrc.clip = this.playerLandsAudio;
 
-                Debug.Log(Time.time + " land magnitude: " + collisionMagnitude);
+                //Debug.Log(Time.time + " land magnitude: " + collisionMagnitude);
 
                 snd.audioSrc.minDistance = 5f;
                 snd.audioSrc.maxDistance = 100f;
