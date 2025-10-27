@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 /// <summary>
 /// Controls an enemy that uses a NavMeshAgent to chase the player,
@@ -19,8 +20,25 @@ public class EnemyMovement : MonoBehaviour
     [Tooltip("How far down to check for a platform beneath the AI and player.")]
     public float groundCheckDistance = 1.5f;
 
+    public enum AIState
+    {
+        passive,
+        chase
+    };
+
+    [Header("AI State")]
+    public AIState aiState;
+
+    // --- Animation (added) ---
+    [Header("Animation")]
+    [SerializeField] private Animator anim;
+    [SerializeField] private float damp = 0.1f;
+    [SerializeField] private float runThreshold = 3.0f;
+    
     // --- Private Variables ---
     private NavMeshAgent navMeshAgent;
+    private float growlCooldown = 6;
+    private float growlStartTime = 0;
 
     void Awake()
     {
@@ -40,6 +58,14 @@ public class EnemyMovement : MonoBehaviour
                 this.enabled = false; // Disable the script if no player is found.
             }
         }
+
+        // --- Animation hookup (added) ---
+        if (anim == null)
+            anim = GetComponentInChildren<Animator>(true);
+        if (anim != null)
+            anim.applyRootMotion = false; // AI (NavMeshAgent) controls movement, not animation
+
+        aiState = AIState.passive;
     }
 
     void Update()
@@ -47,40 +73,103 @@ public class EnemyMovement : MonoBehaviour
         // If we don't have a valid player reference, do nothing.
         if (player == null) return;
 
-        // Check if the player is on the same platform as the AI.
-        if (IsPlayerOnSamePlatform())
+        IsPlayerOnSamePlatform();
+
+        switch (aiState)
         {
-            // If they are on the same platform, chase the player.
-            navMeshAgent.isStopped = false; // Ensure the agent can move.
-            navMeshAgent.SetDestination(player.position);
+            case AIState.chase:
+                // If they are on the same platform, chase the player.
+                navMeshAgent.isStopped = false; // Ensure the agent can move.
+                navMeshAgent.SetDestination(player.position);
+
+                //Only growl if it's been enough time since the last one
+                if (Time.time - growlStartTime > growlCooldown)
+                {
+                    //Debug.Log("Trigger Growl");
+                    EventManager.TriggerEvent<TigerGrowlEvent, Vector3>(this.gameObject.transform.position);
+                    growlStartTime = Time.time;
+                    growlCooldown = Random.Range(3f, 6f);
+                }
+                break;
+
+            case AIState.passive:
+                // If they are on a different platform, stop the agent.
+                navMeshAgent.isStopped = true;
+                break;
         }
-        else
-        {
-            // If they are on a different platform, stop the agent.
-            navMeshAgent.isStopped = true;
-        }
+
+        // --- Drive Animator every frame (added) ---
+        UpdateAnimatorParameters();
     }
 
     /// <summary>
     /// Checks if the AI and the player are standing on the same ground object using raycasts.
     /// </summary>
-    /// <returns>True if they are on the same platform, false otherwise.</returns>
-    private bool IsPlayerOnSamePlatform()
+    private void IsPlayerOnSamePlatform()
     {
         // Raycast down from the AI to find its ground.
         RaycastHit aiHit;
-        bool aiIsGrounded = Physics.Raycast(transform.position, Vector3.down, out aiHit, groundCheckDistance, groundLayer);
+        bool aiIsGrounded = Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out aiHit, groundCheckDistance, groundLayer);
 
         // Raycast down from the Player to find its ground.
         RaycastHit playerHit;
-        bool playerIsGrounded = Physics.Raycast(player.position, Vector3.down, out playerHit, groundCheckDistance, groundLayer);
+        bool playerIsGrounded = Physics.Raycast(player.position, transform.TransformDirection(Vector3.down), out playerHit, groundCheckDistance, groundLayer);
 
         // They are on the same platform if both are grounded AND the colliders they are standing on are the same object.
         if (aiIsGrounded && playerIsGrounded && aiHit.collider.gameObject == playerHit.collider.gameObject)
         {
-            return true;
+            // Set AI state to chase (if it is not already)
+            if (aiState != AIState.chase)
+                aiState = AIState.chase;
+            return;
         }
 
-        return false;
+        // If tiger was chasing the player & they leave its range, roar
+        bool hit = Physics.Raycast(player.position, transform.TransformDirection(Vector3.down), out playerHit, 20f, groundLayer);
+        if (hit)
+        {
+            //Debug.Log("Hit: " + playerHit.point);
+            //Debug.DrawRay(player.position, transform.TransformDirection(Vector3.down) * playerHit.distance, Color.red);
+            if (aiState == AIState.chase && aiHit.collider.gameObject != playerHit.collider.gameObject)
+            {
+                EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
+                //set the growl cooldown so it doesn't immediately growl if the player jumps back on the platform
+                growlStartTime = Time.time;
+                growlCooldown = Random.Range(3f, 6f);
+            }
+        }
+        //this could cause problems, but it works for some unknown reason so I'm leaving it in for now
+        else
+        {
+            EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
+            growlStartTime = Time.time;
+            growlCooldown = Random.Range(3f, 6f);
+        }
+
+        // If they're not on the same platform, set the AI state to passive
+        if (aiState != AIState.passive)
+            aiState = AIState.passive;
+    }
+
+    // --- Animator driver for Vert/State ---
+    private void UpdateAnimatorParameters()
+    {
+        if (anim == null) return;
+
+        // World-space linear speed (m/s) from NavMeshAgent
+        float speed = navMeshAgent != null ? navMeshAgent.velocity.magnitude : 0f;
+
+        bool isMoving  = speed > 0.05f;
+        bool isRunning = speed >= runThreshold;
+
+        // Vert: 0 idle, 1 moving; State: 0 walk, 1 run
+        float targetVert  = isMoving ? 1f : 0f;
+        float targetState = isRunning ? 1f : 0f;
+
+        anim.SetFloat("Vert",  targetVert,  damp, Time.deltaTime);
+        anim.SetFloat("State", targetState, damp, Time.deltaTime);
+
+        // Ensure root motion stays off (AI controls translation)
+        if (anim.applyRootMotion) anim.applyRootMotion = false;
     }
 }

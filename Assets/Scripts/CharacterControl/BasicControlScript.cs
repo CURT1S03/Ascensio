@@ -184,8 +184,13 @@ public class BasicControlScript : MonoBehaviour
         if (collision.transform.gameObject.tag == "ground")
         {
             ++groundContactCount;
-                    
-            EventManager.TriggerEvent<PlayerLandsEvent, Vector3, float>(collision.contacts[0].point, collision.impulse.magnitude);
+
+
+        }
+        if (collision.transform.gameObject.tag == "enemy")
+        {
+            EventManager.TriggerEvent<EnemyCollisionEvent, Vector3, float>(collision.contacts[0].point, collision.impulse.magnitude);
+
         }
                                 
     }
@@ -195,6 +200,11 @@ public class BasicControlScript : MonoBehaviour
         if (collision.transform.gameObject.tag == "ground")
         {
             --groundContactCount;
+
+        }
+        if (collision.transform.gameObject.tag == "enemy")
+        {
+            EventManager.TriggerEvent<HissEvent, Vector3>(this.gameObject.transform.position);
 
         }
     }
