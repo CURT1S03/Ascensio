@@ -24,11 +24,17 @@ public class EnemyMovement : MonoBehaviour
     {
         passive,
         chase
-
     };
+
     [Header("AI State")]
     public AIState aiState;
 
+    // --- Animation (added) ---
+    [Header("Animation")]
+    [SerializeField] private Animator anim;
+    [SerializeField] private float damp = 0.1f;
+    [SerializeField] private float runThreshold = 3.0f;
+    
     // --- Private Variables ---
     private NavMeshAgent navMeshAgent;
     private float growlCooldown = 6;
@@ -52,6 +58,13 @@ public class EnemyMovement : MonoBehaviour
                 this.enabled = false; // Disable the script if no player is found.
             }
         }
+
+        // --- Animation hookup (added) ---
+        if (anim == null)
+            anim = GetComponentInChildren<Animator>(true);
+        if (anim != null)
+            anim.applyRootMotion = false; // AI (NavMeshAgent) controls movement, not animation
+
         aiState = AIState.passive;
     }
 
@@ -83,8 +96,10 @@ public class EnemyMovement : MonoBehaviour
                 // If they are on a different platform, stop the agent.
                 navMeshAgent.isStopped = true;
                 break;
-
         }
+
+        // --- Drive Animator every frame (added) ---
+        UpdateAnimatorParameters();
     }
 
     /// <summary>
@@ -139,4 +154,25 @@ public class EnemyMovement : MonoBehaviour
             aiState = AIState.passive;
     }
 
+    // --- Animator driver for Vert/State ---
+    private void UpdateAnimatorParameters()
+    {
+        if (anim == null) return;
+
+        // World-space linear speed (m/s) from NavMeshAgent
+        float speed = navMeshAgent != null ? navMeshAgent.velocity.magnitude : 0f;
+
+        bool isMoving  = speed > 0.05f;
+        bool isRunning = speed >= runThreshold;
+
+        // Vert: 0 idle, 1 moving; State: 0 walk, 1 run
+        float targetVert  = isMoving ? 1f : 0f;
+        float targetState = isRunning ? 1f : 0f;
+
+        anim.SetFloat("Vert",  targetVert,  damp, Time.deltaTime);
+        anim.SetFloat("State", targetState, damp, Time.deltaTime);
+
+        // Ensure root motion stays off (AI controls translation)
+        if (anim.applyRootMotion) anim.applyRootMotion = false;
+    }
 }
