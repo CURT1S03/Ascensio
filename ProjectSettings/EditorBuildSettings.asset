@@ -6,11 +6,11 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene_beanstalk.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 58f33ffff6ed19544bccd47aaf243161
+  - enabled: 0
+    path: Assets/Scenes/SampleScene_beanstalk.unity
+    guid: c3e611f4a33e746429a555b4e34276eb
   - enabled: 1
     path: Assets/Scenes/WinScene.unity
     guid: b3beb34edb19343d5ba62c0df9f238b5
