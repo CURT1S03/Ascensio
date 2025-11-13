@@ -12,6 +12,9 @@ public class BasicControlScript : MonoBehaviour
     private Rigidbody rbody;
     private CharacterInputController cinput;
     private ConstantForce cforce;
+    private GameObject meshObject;
+    private Material mesh;
+    private Color defaultColor;
 
     private float jumpStart = 0;
     private bool addForce = false;
@@ -22,6 +25,8 @@ public class BasicControlScript : MonoBehaviour
     private bool isRunning = false;
     private float inputForward;
     private float inputTurn;
+
+    public Color hitColor = new(0f,0f,0f);
     
     
     [Header("Movement Settings")]
@@ -80,11 +85,22 @@ public class BasicControlScript : MonoBehaviour
         if (cforce == null)
             Debug.Log("Constant Force could not be found");
 
-        // --- FIX ---
-        // Freeze rotation on all axes to prevent the character from tipping over.
-        // This prevents any OTHER objects from causing the rigidbody to rotate.
-        // Script components can still rotate it
-        rbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+        meshObject = transform.Find("Model/Kitty_001").gameObject;
+        if (meshObject == null)
+            Debug.Log("Model could not be found");
+        else
+        {
+            mesh = meshObject.GetComponentInChildren<SkinnedMeshRenderer>().material;
+            if (mesh == null)
+                Debug.Log("Mesh could not be found");
+            defaultColor = mesh.color;
+        }
+
+            // --- FIX ---
+            // Freeze rotation on all axes to prevent the character from tipping over.
+            // This prevents any OTHER objects from causing the rigidbody to rotate.
+            // Script components can still rotate it
+            rbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
     }
 
 
@@ -265,7 +281,14 @@ public class BasicControlScript : MonoBehaviour
             ++groundContactCount;
 
         if (collision.transform.gameObject.tag == "enemy")
-            EventManager.TriggerEvent<EnemyCollisionEvent, Vector3, float>(collision.contacts[0].point, collision.impulse.magnitude);                            
+        {
+            if (meshObject != null)
+            {
+                if (mesh != null)
+                    mesh.color = defaultColor + hitColor;
+            }
+            EventManager.TriggerEvent<EnemyCollisionEvent, Vector3, float>(collision.contacts[0].point, collision.impulse.magnitude);
+        }
     }
 
     void OnCollisionExit(Collision collision)
@@ -274,8 +297,14 @@ public class BasicControlScript : MonoBehaviour
             --groundContactCount;
 
         if (collision.transform.gameObject.tag == "enemy")
+        {
+            if (meshObject != null)
+            {
+                if (mesh != null)
+                    mesh.color = defaultColor;
+            }
             EventManager.TriggerEvent<HissEvent, Vector3>(this.gameObject.transform.position);
-    
+        }
     }
     
 }
