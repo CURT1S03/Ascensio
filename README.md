@@ -3,17 +3,15 @@ Ascencio_readme.txt
 Assignment Packaging and Submission Requirements
 =============================================================================
 
-=============================================================================
 i. START SCENE FILE
-=============================================================================
 Main Scene: Assets/Scenes/SampleScene.unity
 Alternative scenes available:
 - Assets/Scenes/MainMenu.unity (Main menu scene)
 - Assets/Scenes/JiwonScene.unity (Additional test scene)
 
-=============================================================================
+
 ii. HOW TO PLAY AND TECHNOLOGY REQUIREMENTS TO OBSERVE
-=============================================================================
+
 
 CONTROLS:
 - WASD: Move character
@@ -54,9 +52,8 @@ TECHNOLOGY REQUIREMENTS TO OBSERVE:
    - Proper prefab organization
    - Material and texture management
 
-=============================================================================
+
 iii. KNOWN PROBLEM AREAS
-=============================================================================
 
 CURRENT KNOWN ISSUES:
 1. The starts to the treehouse has some collider issue causing the character difficult to walk up.
@@ -74,9 +71,9 @@ TESTING RECOMMENDATIONS:
 - Check pause menu functionality
 - Test camera behavior in different environments
 
-=============================================================================
+
 PROJECT STRUCTURE NOTES
-=============================================================================
+
 Assets/
   ├── Models/               (3D models and textures)
   ├── Scenes/               (Unity scene files)
@@ -85,26 +82,26 @@ Assets/
   ├── Material/             (Materials)
   └── TextMesh Pro/         (UI text system)
 
-=============================================================================
+
 VERSION INFORMATION
-=============================================================================
+
 Unity Version: 6000.0fff1
 Git Repository: https://github.gatech.edu/jlee3973/Ascencio
 Last Updated: October 27, 2025
 Branch: main
 
-=============================================================================
+
 TEAM MEMBERS:
 Curtis Cao
 Zade Feng
 Riley Vaupel
 Jiwon Lee
 Samantha Taing
-=============================================================================
 
-=============================================================================
+
+
 iv. MANIFEST OF FILES AUTHORED BY EACH TEAMMATE
-=============================================================================
+
 Curtis Cao:
 - Responsibilities: Character basic control script, character camera system, asset integration, level design
 - Assets Implemented:
