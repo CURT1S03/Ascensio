@@ -19,6 +19,7 @@ public class BasicControlScript : MonoBehaviour
     private float jumpStart = 0;
     private bool addForce = false;
     private bool holdingJump = false;
+    private bool setGrav = false;
     private Vector3 forceVector = new(0, 0, 0);
     private bool isTurning = false;
     private bool isMoving = false;
@@ -106,15 +107,6 @@ public class BasicControlScript : MonoBehaviour
 
     void Start()
     {
-        /*
-            example of how to get access to certain limbs
-            leftFoot = this.transform.Find("mixamorig:Hips/mixamorig:LeftUpLeg/mixamorig:LeftLeg/mixamorig:LeftFoot");
-            rightFoot = this.transform.Find("mixamorig:Hips/mixamorig:RightUpLeg/mixamorig:RightLeg/mixamorig:RightFoot");
-
-            if (leftFoot == null || rightFoot == null)
-                Debug.Log("One of the feet could not be found");
-        */
-
         anim.applyRootMotion = false;
 
         //set custom gravity
@@ -130,6 +122,29 @@ public class BasicControlScript : MonoBehaviour
             addForce = false;
         }
 
+        // Reduce the gravity
+
+        // Calculate new force from jumpGravity using an exponential curve: gravity / (jumpGravity + 1) 
+        //      taking the offset Physics.gravity.y applied to the GameObject into account
+        // Gets an exponential curve that hits gravity - Physics.gravity.y at jumpGravity = 0 and Physics.gravity.y at jumpGravity = inf
+        
+        // This is a very complicated calculation that makes the public var jumpGravity easier to set/understand
+
+        // Could add a check here to set occurances of Physics.gravity.y to 0 if gravity isn't being applied to the GameObject
+        float newGrav = gravity*(gravity + 2 * Physics.gravity.y) / (jumpGravity * gravity + 2 * Physics.gravity.y * jumpGravity + gravity) - Physics.gravity.y;
+        if (jumpGravity > 0 && setGrav && holdingJump)
+        { 
+            cforce.force = new(0f, newGrav, 0f);
+            setGrav = false;
+        }
+
+        // Set gravity back to normal
+        if (setGrav && !holdingJump)
+        {
+            cforce.force = new (0f, gravity - Physics.gravity.y, 0f);
+            setGrav = false;
+        }
+            
         // --- Run toggle (hold Shift to run) ---
         float runMultiplier = isRunning ? 1.8f : 1.0f;
         
@@ -204,28 +219,18 @@ public class BasicControlScript : MonoBehaviour
             forceVector += Vector3.up * jumpForce;
             holdingJump = true;
             addForce = true;
-
-            // Reduce the gravity
-
-            // Calculate new force from jumpGravity using an exponential curve: gravity / (jumpGravity + 1) 
-            //      taking the offset Physics.gravity.y applied to the GameObject into account
-            // Gets an exponential curve that hits gravity - Physics.gravity.y at jumpGravity = 0 and Physics.gravity.y at jumpGravity = inf
-
-            // Could add a check here to set  occurances of Physics.gravity.y to 0 if gravity isn't being applied to the GameObject
-            float newGrav = gravity*(gravity + 2 * Physics.gravity.y) / (jumpGravity * gravity + 2 * Physics.gravity.y * jumpGravity + gravity) - Physics.gravity.y;
-            if (jumpGravity > 0)
-                cforce.force = new(0f, newGrav, 0f);
+            setGrav = true;
 
             //if (anim) anim.SetTrigger("doJump");
         }
 
         // Set gravity back to normal when space is released, char hits the ground, or its jumped for the maximum time
-        if ((!Input.GetKey(KeyCode.Space) || (isGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
+        if ((!Input.GetKey(KeyCode.Space) || (IsGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
         {
             holdingJump = false;
-            cforce.force = new (0f, gravity - Physics.gravity.y, 0f);
+            setGrav = true;
         }
-
+            
         // --- Run toggle (hold Shift to run) ---
         isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
 
