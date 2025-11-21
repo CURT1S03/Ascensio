@@ -143,6 +143,12 @@ Samantha Taing:
   * Assets/ithappy/Animals_FREE/Scripts/CreatureMover.cs (character movement script)
   * Character animation files (idle, walk, run animations)
   * Character physics and collision scripts
+
+v. RECENT UPDATES
+- Redesigned level layout in SampleScene.unity
+- Added new bridge and environment assets
+- Improved navigation mesh
+
 =============================================================================
 END OF README
 =============================================================================
