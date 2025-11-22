@@ -7,35 +7,48 @@ public class BouncyLeaf : MonoBehaviour
     [Tooltip("The minimum force applied if the player just walks onto it")]
     public float minBounceForce = 10f;
 
-    [Tooltip("The maximum force applied. Set this high enough to accommodate the Super Jump!")]
-    public float maxBounceForce = 40f; // Increased default slightly to allow for boosts
+    [Tooltip("The maximum force applied.")]
+    public float maxBounceForce = 40f;
 
     [Tooltip("Multiplies the player's falling speed.")]
     public float bounceMultiplier = 1.2f;
 
-    [Header("Jump Boost")]
-    [Tooltip("Multiplier applied if the player holds Space while landing")]
+    [Header("Jump Boost Timing")]
+    [Tooltip("Multiplier applied if the player times their jump correctly")]
     public float jumpBoostMultiplier = 1.5f;
 
+    [Tooltip("Time window to accept inputs BEFORE hitting the leaf")]
+    public float jumpBufferWindow = 0.5f;
+
     [Header("Visual Feedback")]
-    public float squashAmount = 0.6f; // How flat the leaf gets (0 to 1)
+    public float squashAmount = 0.6f;
     public float animationDuration = 0.2f;
 
     private Vector3 originalScale;
     private bool isAnimating = false;
+    private float lastJumpPressTime = -100f;
 
     void Start()
     {
         originalScale = transform.localScale;
     }
 
+    void Update()
+    {
+        // Constantly listen for the Jump key
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            lastJumpPressTime = Time.time;
+        }
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
-        // 1. Check if it is the Player
         if (collision.gameObject.CompareTag("Player"))
         {
-            // 2. Check if the player hit the TOP of the leaf
             ContactPoint contact = collision.GetContact(0);
+
+            // Ensure hitting from top (Checking if normal points UP)
             if (Vector3.Dot(contact.normal, Vector3.down) > 0.5f)
             {
                 Rigidbody playerRb = collision.gameObject.GetComponent<Rigidbody>();
@@ -51,56 +64,65 @@ public class BouncyLeaf : MonoBehaviour
 
     private void ApplyBounce(Rigidbody playerRb, Vector3 impactVelocity)
     {
-        // TRAMPOLINE MATH:
-        // collision.relativeVelocity gives us how hard the two objects hit.
         float impactSpeed = Mathf.Abs(impactVelocity.y);
 
-        // Calculate base force
-        float calculatedForce = impactSpeed * bounceMultiplier;
+        // 1. Calculate Base Force
+        float baseForce = impactSpeed * bounceMultiplier;
 
-        // BOOST LOGIC:
-        // Check if Space is held down at the moment of impact
-        if (Input.GetKey(KeyCode.Space))
+        // 2. Enforce Minimum Force IMMEDIATELY
+        // This ensures that even a small hop gets raised to the minimum standard
+        // BEFORE we apply the boost multiplier.
+        baseForce = Mathf.Max(baseForce, minBounceForce);
+
+        // --- TIMING LOGIC ---
+        bool isHoldingSpace = Input.GetKey(KeyCode.Space);
+        bool pressedSpaceRecently = (Time.time - lastJumpPressTime) <= jumpBufferWindow;
+
+        float finalForce = baseForce;
+
+        if (isHoldingSpace || pressedSpaceRecently)
         {
-            calculatedForce *= jumpBoostMultiplier;
+            // 3. Apply Boost to the valid, clamped base force
+            finalForce *= jumpBoostMultiplier;
+
+            // Reset buffer
+            lastJumpPressTime = -100f;
         }
 
-        // Clamp the force so it respects the safety limits
-        float newUpwardForce = Mathf.Clamp(calculatedForce, minBounceForce, maxBounceForce);
+        // 4. Final Safety Clamp (prevent flying into orbit)
+        finalForce = Mathf.Clamp(finalForce, minBounceForce, maxBounceForce);
 
-        // Reset the player's current Y velocity to 0 for consistent AddForce
+        // Reset vertical velocity for consistent bounce
         Vector3 currentVelocity = playerRb.linearVelocity;
         playerRb.linearVelocity = new Vector3(currentVelocity.x, 0, currentVelocity.z);
 
-        // Apply the force
-        playerRb.AddForce(Vector3.up * newUpwardForce, ForceMode.Impulse);
+        playerRb.AddForce(Vector3.up * finalForce, ForceMode.Impulse);
     }
 
-    // Squash and Stretch Animation
     IEnumerator SquashAnimation()
     {
         isAnimating = true;
         float timer = 0;
 
-        // Squash down
+        // Squash
         while (timer < animationDuration / 2)
         {
             timer += Time.deltaTime;
-            float scaleY = Mathf.Lerp(originalScale.y, originalScale.y * squashAmount, timer / (animationDuration / 2));
-            float scaleXZ = Mathf.Lerp(originalScale.x, originalScale.x * (1 + (1 - squashAmount)), timer / (animationDuration / 2));
-
+            float t = timer / (animationDuration / 2);
+            float scaleY = Mathf.Lerp(originalScale.y, originalScale.y * squashAmount, t);
+            float scaleXZ = Mathf.Lerp(originalScale.x, originalScale.x * (1 + (1 - squashAmount)), t);
             transform.localScale = new Vector3(scaleXZ, scaleY, scaleXZ);
             yield return null;
         }
 
-        // Spring back up
+        // Stretch back
         timer = 0;
         while (timer < animationDuration / 2)
         {
             timer += Time.deltaTime;
-            float scaleY = Mathf.Lerp(originalScale.y * squashAmount, originalScale.y, timer / (animationDuration / 2));
-            float scaleXZ = Mathf.Lerp(originalScale.x * (1 + (1 - squashAmount)), originalScale.x, timer / (animationDuration / 2));
-
+            float t = timer / (animationDuration / 2);
+            float scaleY = Mathf.Lerp(originalScale.y * squashAmount, originalScale.y, t);
+            float scaleXZ = Mathf.Lerp(originalScale.x * (1 + (1 - squashAmount)), originalScale.x, t);
             transform.localScale = new Vector3(scaleXZ, scaleY, scaleXZ);
             yield return null;
         }

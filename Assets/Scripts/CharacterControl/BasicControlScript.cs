@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
 using UnityEngine;
-
 
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(CharacterInputController))]
 public class BasicControlScript : MonoBehaviour
 {
-    [SerializeField] private Animator anim;  
+    [SerializeField] private Animator anim;
     private Rigidbody rbody;
     private CharacterInputController cinput;
     private ConstantForce cforce;
@@ -20,21 +18,19 @@ public class BasicControlScript : MonoBehaviour
     private bool addForce = false;
     private bool holdingJump = false;
     private bool setGrav = false;
-    private Vector3 forceVector = new(0, 0, 0);
+    private Vector3 forceVector = new Vector3(0, 0, 0);
     private bool isTurning = false;
     private bool isMoving = false;
     private bool isRunning = false;
     private float inputForward;
     private float inputTurn;
 
-    public Color hitColor = new(0f,0f,0f);
-    
-    
+    public Color hitColor = new Color(0f, 0f, 0f);
+
     [Header("Movement Settings")]
     public float forwardMaxSpeed = 5f;
     public float turnMaxSpeed = 120f;
 
-    // NEW: Public variable to control jump height from the Inspector.
     [Header("Jump Settings")]
     public float jumpForce = 1f;
 
@@ -47,7 +43,6 @@ public class BasicControlScript : MonoBehaviour
     [Tooltip("Factor to reduce gravity by while holding space")]
     public float jumpGravity = 0;
 
-    //Useful if you implement jump in the future...
     public float jumpableGroundNormalMaxAngle = 45f;
     public bool closeToJumpableGround;
     private int groundContactCount = 0;
@@ -62,104 +57,79 @@ public class BasicControlScript : MonoBehaviour
 
     private bool isGrounded = true;
 
-
     void Awake()
     {
-
         anim = GetComponentInChildren<Animator>();
-
-        if (anim == null)
-            Debug.Log("Animator could not be found");
+        if (anim == null) Debug.Log("Animator could not be found");
 
         rbody = GetComponent<Rigidbody>();
-
-        if (rbody == null)
-            Debug.Log("Rigid body could not be found");
+        if (rbody == null) Debug.Log("Rigid body could not be found");
 
         cinput = GetComponent<CharacterInputController>();
-
-        if (cinput == null)
-            Debug.Log("CharacterInputController could not be found");
+        if (cinput == null) Debug.Log("CharacterInputController could not be found");
 
         cforce = GetComponent<ConstantForce>();
+        if (cforce == null) Debug.Log("Constant Force could not be found");
 
-        if (cforce == null)
-            Debug.Log("Constant Force could not be found");
-
-        meshObject = transform.Find("Model/Kitty_001").gameObject;
+        meshObject = transform.Find("Model/Kitty_001")?.gameObject;
         if (meshObject == null)
             Debug.Log("Model could not be found");
         else
         {
-            mesh = meshObject.GetComponentInChildren<SkinnedMeshRenderer>().material;
-            if (mesh == null)
-                Debug.Log("Mesh could not be found");
-            defaultColor = mesh.color;
+            var renderer = meshObject.GetComponentInChildren<SkinnedMeshRenderer>();
+            if (renderer != null)
+            {
+                mesh = renderer.material;
+                defaultColor = mesh.color;
+            }
         }
 
-            // --- FIX ---
-            // Freeze rotation on all axes to prevent the character from tipping over.
-            // This prevents any OTHER objects from causing the rigidbody to rotate.
-            // Script components can still rotate it
-            rbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+        // Freeze rotation to prevent tipping
+        rbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
     }
-
 
     void Start()
     {
-        anim.applyRootMotion = false;
-
-        //set custom gravity
-        cforce.force = new(0f, gravity - Physics.gravity.y, 0f);
+        if (anim) anim.applyRootMotion = false;
+        cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
     }
 
     void FixedUpdate()
     {
-        // Add force in fixed update for consistent jump height
         if (addForce)
         {
             rbody.AddForce(forceVector, ForceMode.Impulse);
             addForce = false;
         }
 
-        // Reduce the gravity
+        // Calculate gravity logic
+        float newGrav = gravity * (gravity + 2 * Physics.gravity.y) / (jumpGravity * gravity + 2 * Physics.gravity.y * jumpGravity + gravity) - Physics.gravity.y;
 
-        // Calculate new force from jumpGravity using an exponential curve: gravity / (jumpGravity + 1) 
-        //      taking the offset Physics.gravity.y applied to the GameObject into account
-        // Gets an exponential curve that hits gravity - Physics.gravity.y at jumpGravity = 0 and Physics.gravity.y at jumpGravity = inf
-        
-        // This is a very complicated calculation that makes the public var jumpGravity easier to set/understand
-
-        // Could add a check here to set occurances of Physics.gravity.y to 0 if gravity isn't being applied to the GameObject
-        float newGrav = gravity*(gravity + 2 * Physics.gravity.y) / (jumpGravity * gravity + 2 * Physics.gravity.y * jumpGravity + gravity) - Physics.gravity.y;
         if (jumpGravity > 0 && setGrav && holdingJump)
-        { 
-            cforce.force = new(0f, newGrav, 0f);
+        {
+            cforce.force = new Vector3(0f, newGrav, 0f);
             setGrav = false;
         }
 
-        // Set gravity back to normal
         if (setGrav && !holdingJump)
         {
-            cforce.force = new (0f, gravity - Physics.gravity.y, 0f);
+            cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
             setGrav = false;
         }
-            
-        // --- Run toggle (hold Shift to run) ---
+
+        // Movement
         float runMultiplier = isRunning ? 1.8f : 1.0f;
-        
-        // --- Movement ---
+
         if (isMoving)
         {
             float moveSpeed = forwardMaxSpeed * runMultiplier;
             rbody.MovePosition(rbody.position + inputForward * moveSpeed * Time.fixedDeltaTime * transform.forward);
-            //Debug.Log(Time.time + " new position: " + (rbody.position + inputForward * moveSpeed * Time.fixedDeltaTime * transform.forward));
         }
 
-        // --- Rotation ---
+        // Rotation
         float turnSpeed = isTurning && !isMoving ? turnMaxSpeed * 0.6f : turnMaxSpeed;
-
         rbody.angularVelocity = Vector3.zero;
+
         if (isTurning && turnSpeed > 0f)
         {
             var deltaRot = Quaternion.AngleAxis(inputTurn * Time.fixedDeltaTime * turnSpeed, Vector3.up);
@@ -169,20 +139,17 @@ public class BasicControlScript : MonoBehaviour
 
     void Update()
     {
-        // reset the force to add if we've already added it in FixedUpdate
-        if (!addForce)
-            forceVector = new(0f, 0f, 0f);
+        if (!addForce) forceVector = Vector3.zero;
 
         inputForward = 0f;
         inputTurn = 0f;
 
         if (cinput.enabled)
         {
-            inputForward = cinput.Forward; // -1..1
-            inputTurn = cinput.Turn;    // -1..1
+            inputForward = cinput.Forward;
+            inputTurn = cinput.Turn;
         }
 
-        // Dead-zone filtering to prevent noise
         const float dead = 0.05f;
         if (Mathf.Abs(inputForward) < dead)
         {
@@ -198,10 +165,10 @@ public class BasicControlScript : MonoBehaviour
         }
         else isTurning = true;
 
-        // Reverse turning when moving backward
         if (inputForward < 0f) inputTurn = -inputTurn;
 
-        // Ground check (your existing helper)
+        // --- UPDATED GROUND CHECK ---
+        // Uses the 'groundContactCount' which we updated in OnCollisionEnter/Exit below
         isGrounded = IsGrounded || CharacterCommon.CheckGroundNear(
             this.transform.position,
             jumpableGroundNormalMaxAngle,
@@ -210,9 +177,7 @@ public class BasicControlScript : MonoBehaviour
             out closeToJumpableGround
         );
 
-        // Jump (your cat anim may not have a jump state; this is harmless)
-
-        // Start jump
+        // Jump Logic
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             jumpStart = Time.time;
@@ -220,56 +185,41 @@ public class BasicControlScript : MonoBehaviour
             holdingJump = true;
             addForce = true;
             setGrav = true;
-
-            //if (anim) anim.SetTrigger("doJump");
         }
 
-        // Set gravity back to normal when space is released, char hits the ground, or its jumped for the maximum time
         if ((!Input.GetKey(KeyCode.Space) || (IsGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
         {
             holdingJump = false;
             setGrav = true;
         }
-            
-        // --- Run toggle (hold Shift to run) ---
+
         isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
 
-        // --- Animator + turn/run logic (with airborne handling) ---
+        // Animator Logic
         if (anim)
         {
             bool isTurningOnly = isTurning && !isMoving;
 
-            // Rigidbody vertical speed (optional, for future ascent/descent logic)
-            float vy = rbody.linearVelocity.y;
-
-            // If airborne, kill locomotion blend so legs don't stride mid-air
             if (!isGrounded)
             {
-                SetAnimFloat(anim, "Vert", 0f, 0.08f, Time.deltaTime);     // idle side of tree
-                SetAnimFloat(anim, "State", 0f, 0.08f, Time.deltaTime);    // walk, not run
+                SetAnimFloat(anim, "Vert", 0f, 0.08f, Time.deltaTime);
+                SetAnimFloat(anim, "State", 0f, 0.08f, Time.deltaTime);
                 anim.SetBool("isFalling", true);
-                // If your controller uses Grounded instead:
-                // anim.SetBool("Grounded", false);
-
-                // Optional: slightly slow/steady the pose in air
                 anim.speed = 1f;
             }
             else
             {
-                float targetVert = isTurningOnly ? 1f : (isMoving ? 1f : 0f); // turn-in-place looks like walking
-                float targetState = isTurningOnly ? 0f : ((isRunning && isGrounded) ? 1f : 0f); // Run only when moving forward on ground
+                float targetVert = isTurningOnly ? 1f : (isMoving ? 1f : 0f);
+                float targetState = isTurningOnly ? 0f : ((isRunning && isGrounded) ? 1f : 0f);
 
-                // Change floats smoothly if the target is > 0 or it hasn't reached .001 yet
                 SetAnimFloat(anim, "Vert", targetVert, 0.06f, Time.deltaTime);
                 SetAnimFloat(anim, "State", targetState, 0.06f, Time.deltaTime);
-                //anim.SetBool("isFalling", false);
-                // or: anim.SetBool("Grounded", true);
+                anim.SetBool("isFalling", false); // Added this back so falling animation stops when grounded
                 anim.speed = 1f;
             }
         }
     }
 
-    // Helper to send floats to the anim so they can reach 0
     void SetAnimFloat(Animator animator, string name, float value, float dampTime, float deltaTime)
     {
         if (animator.GetFloat(name) > .001 || value > 0)
@@ -278,38 +228,35 @@ public class BasicControlScript : MonoBehaviour
             animator.SetFloat(name, 0);
     }
 
+    // --- PHYSICS CALLBACKS UPDATED HERE ---
 
-    //This is a physics callback
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.gameObject.tag == "ground")
+        // UPDATED: Added check for "Plane" tag using CompareTag (better performance)
+        if (collision.gameObject.CompareTag("ground") || collision.gameObject.CompareTag("Plane"))
             ++groundContactCount;
 
-        if (collision.transform.gameObject.tag == "enemy")
+        if (collision.gameObject.CompareTag("enemy"))
         {
-            if (meshObject != null)
-            {
-                if (mesh != null)
-                    mesh.color = defaultColor + hitColor;
-            }
+            if (meshObject != null && mesh != null)
+                mesh.color = defaultColor + hitColor;
+
             EventManager.TriggerEvent<EnemyCollisionEvent, Vector3, float>(collision.contacts[0].point, collision.impulse.magnitude);
         }
     }
 
     void OnCollisionExit(Collision collision)
     {
-        if (collision.transform.gameObject.tag == "ground")
+        // UPDATED: Added check for "Plane" tag
+        if (collision.gameObject.CompareTag("ground") || collision.gameObject.CompareTag("Plane"))
             --groundContactCount;
 
-        if (collision.transform.gameObject.tag == "enemy")
+        if (collision.gameObject.CompareTag("enemy"))
         {
-            if (meshObject != null)
-            {
-                if (mesh != null)
-                    mesh.color = defaultColor;
-            }
+            if (meshObject != null && mesh != null)
+                mesh.color = defaultColor;
+
             EventManager.TriggerEvent<HissEvent, Vector3>(this.gameObject.transform.position);
         }
     }
-    
 }
