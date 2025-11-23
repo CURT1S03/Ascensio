@@ -3,124 +3,125 @@ using System.Collections;
 
 public class BouncyLeaf : MonoBehaviour
 {
-    [Header("Bounce Physics")]
-    [Tooltip("The minimum force applied if the player just walks onto it")]
-    public float minBounceForce = 10f;
+    [Header("Lazy Bounce (No Input)")]
+    [Tooltip("If player just walks on, use this force.")]
+    public float minBounceForce = 15f;
 
-    [Tooltip("The maximum force applied.")]
-    public float maxBounceForce = 40f;
-
-    [Tooltip("Multiplies the player's falling speed.")]
+    [Tooltip("Multiplies falling speed for normal bounces.")]
     public float bounceMultiplier = 1.2f;
 
-    [Header("Jump Boost Timing")]
-    [Tooltip("Multiplier applied if the player times their jump correctly")]
-    public float jumpBoostMultiplier = 1.5f;
+    [Tooltip("The maximum force allowed for a normal walk-on bounce.")]
+    public float normalMaxForce = 30f; // Renamed to ensure it resets to 30
 
-    [Tooltip("Time window to accept inputs BEFORE hitting the leaf")]
-    public float jumpBufferWindow = 0.5f;
+    [Header("Super Bounce (Space Bar)")]
+    [Tooltip("If Space is pressed, ignore physics and use EXACTLY this force.")]
+    public float superJumpForce = 45f; // Renamed to ensure it resets to 45
 
-    [Header("Visual Feedback")]
-    public float squashAmount = 0.6f;
-    public float animationDuration = 0.2f;
+    [Tooltip("How long (seconds) to hold player on leaf before launching.")]
+    public float bounceDelay = 0.2f;
+
+    [Header("Global Safety")]
+    [Tooltip("The absolute maximum force allowed (Caps both Normal and Super jumps).")]
+    public float absoluteMaxForce = 45f; // Renamed to ensure it resets to 45
+
+    [Header("Visuals")]
+    public float squashAmount = 0.4f;
+    public Color boostColor = Color.white;
 
     private Vector3 originalScale;
-    private bool isAnimating = false;
-    private float lastJumpPressTime = -100f;
+    private Color originalColor;
+    private Renderer ren;
+    private bool isBouncing = false;
+    private bool boostQueued = false;
 
     void Start()
     {
         originalScale = transform.localScale;
+        ren = GetComponentInChildren<Renderer>();
+        if (ren) originalColor = ren.material.color;
     }
 
     void Update()
     {
-        // Constantly listen for the Jump key
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            lastJumpPressTime = Time.time;
+            StartCoroutine(BufferInput());
         }
+    }
+
+    IEnumerator BufferInput()
+    {
+        boostQueued = true;
+        yield return new WaitForSeconds(0.5f);
+        if (!isBouncing) boostQueued = false;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (isBouncing) return;
+
         if (collision.gameObject.CompareTag("Player"))
         {
             ContactPoint contact = collision.GetContact(0);
-
-            // Ensure hitting from top (Checking if normal points UP)
             if (Vector3.Dot(contact.normal, Vector3.down) > 0.5f)
             {
                 Rigidbody playerRb = collision.gameObject.GetComponent<Rigidbody>();
-
                 if (playerRb != null)
                 {
-                    ApplyBounce(playerRb, collision.relativeVelocity);
-                    if (!isAnimating) StartCoroutine(SquashAnimation());
+                    StartCoroutine(BounceSequence(playerRb, collision.relativeVelocity));
                 }
             }
         }
     }
 
-    private void ApplyBounce(Rigidbody playerRb, Vector3 impactVelocity)
+    IEnumerator BounceSequence(Rigidbody playerRb, Vector3 impactVelocity)
     {
-        float impactSpeed = Mathf.Abs(impactVelocity.y);
+        isBouncing = true;
+        float timer = 0f;
 
-        // 1. Calculate Base Force
-        float baseForce = impactSpeed * bounceMultiplier;
-
-        // 2. Enforce Minimum Force IMMEDIATELY
-        // This ensures that even a small hop gets raised to the minimum standard
-        // BEFORE we apply the boost multiplier.
-        baseForce = Mathf.Max(baseForce, minBounceForce);
-
-        // --- TIMING LOGIC ---
-        bool isHoldingSpace = Input.GetKey(KeyCode.Space);
-        bool pressedSpaceRecently = (Time.time - lastJumpPressTime) <= jumpBufferWindow;
-
-        float finalForce = baseForce;
-
-        if (isHoldingSpace || pressedSpaceRecently)
+        if (!Input.GetKey(KeyCode.Space) && !boostQueued)
         {
-            // 3. Apply Boost to the valid, clamped base force
-            finalForce *= jumpBoostMultiplier;
-
-            // Reset buffer
-            lastJumpPressTime = -100f;
+            boostQueued = false;
         }
 
-        // 4. Final Safety Clamp (prevent flying into orbit)
-        finalForce = Mathf.Clamp(finalForce, minBounceForce, maxBounceForce);
-
-        // Reset vertical velocity for consistent bounce
-        Vector3 currentVelocity = playerRb.linearVelocity;
-        playerRb.linearVelocity = new Vector3(currentVelocity.x, 0, currentVelocity.z);
-
-        playerRb.AddForce(Vector3.up * finalForce, ForceMode.Impulse);
-    }
-
-    IEnumerator SquashAnimation()
-    {
-        isAnimating = true;
-        float timer = 0;
-
-        // Squash
-        while (timer < animationDuration / 2)
+        // --- PHASE 1: SINK ---
+        while (timer < bounceDelay)
         {
             timer += Time.deltaTime;
-            float t = timer / (animationDuration / 2);
+
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Space))
+            {
+                boostQueued = true;
+                if (ren) ren.material.color = boostColor;
+            }
+
+            float t = timer / bounceDelay;
             float scaleY = Mathf.Lerp(originalScale.y, originalScale.y * squashAmount, t);
             float scaleXZ = Mathf.Lerp(originalScale.x, originalScale.x * (1 + (1 - squashAmount)), t);
             transform.localScale = new Vector3(scaleXZ, scaleY, scaleXZ);
+
+            if (playerRb != null)
+            {
+                playerRb.linearVelocity = new Vector3(playerRb.linearVelocity.x, 0f, playerRb.linearVelocity.z);
+            }
+
             yield return null;
         }
 
-        // Stretch back
-        timer = 0;
-        while (timer < animationDuration / 2)
+        // --- PHASE 2: LAUNCH ---
+        if (playerRb != null)
+        {
+            ApplyBounce(playerRb, impactVelocity);
+        }
+
+        // --- PHASE 3: RECOIL ---
+        if (ren) ren.material.color = originalColor;
+
+        timer = 0f;
+        while (timer < 0.2f)
         {
             timer += Time.deltaTime;
-            float t = timer / (animationDuration / 2);
+            float t = timer / 0.2f;
             float scaleY = Mathf.Lerp(originalScale.y * squashAmount, originalScale.y, t);
             float scaleXZ = Mathf.Lerp(originalScale.x * (1 + (1 - squashAmount)), originalScale.x, t);
             transform.localScale = new Vector3(scaleXZ, scaleY, scaleXZ);
@@ -128,6 +129,48 @@ public class BouncyLeaf : MonoBehaviour
         }
 
         transform.localScale = originalScale;
-        isAnimating = false;
+        isBouncing = false;
+        boostQueued = false;
+    }
+
+    private void ApplyBounce(Rigidbody playerRb, Vector3 impactVelocity)
+    {
+        float finalForce = 0f;
+
+        if (boostQueued)
+        {
+            // SUPER JUMP (Uses 45)
+            finalForce = superJumpForce;
+            Debug.Log("SUPER JUMP! Raw Force: " + finalForce);
+        }
+        else
+        {
+            // LAZY JUMP (Uses Physics, capped at 30)
+            float impactSpeed = Mathf.Abs(impactVelocity.y);
+            finalForce = impactSpeed * bounceMultiplier;
+            finalForce = Mathf.Max(finalForce, minBounceForce);
+
+            // Apply Normal Cap
+            if (finalForce > normalMaxForce)
+            {
+                finalForce = normalMaxForce;
+                Debug.Log("Normal Bounce capped at 30.");
+            }
+            else
+            {
+                Debug.Log("Normal Bounce. Force: " + finalForce);
+            }
+        }
+
+        // GLOBAL SAFETY CLAMP
+        if (finalForce > absoluteMaxForce)
+        {
+            finalForce = absoluteMaxForce;
+            Debug.LogWarning("Force clamped by Absolute Safety Limit!");
+        }
+
+        Vector3 v = playerRb.linearVelocity;
+        playerRb.linearVelocity = new Vector3(v.x, 0, v.z);
+        playerRb.AddForce(Vector3.up * finalForce, ForceMode.Impulse);
     }
 }
