@@ -21,13 +21,12 @@ public class BasicControlScript : MonoBehaviour
     private Feet[] feet=new Feet[4];
 
     private float jumpStart = 0;
-    private bool addForce = false;
-    private bool holdingJump = false;
-    private bool setGrav = false;
-    private Vector3 forceVector = new Vector3(0, 0, 0);
+    private bool appliedJump = false;
+    private bool jumpHeld = false;
     private bool isTurning = false;
     private bool isMoving = false;
     private bool isRunning = false;
+    private bool shiftHeld = false;
     private float inputForward;
     private float inputTurn;
     public float footstepWeight = 1;
@@ -130,7 +129,8 @@ public class BasicControlScript : MonoBehaviour
     void FixedUpdate()
     {
         // --- UPDATED GROUND CHECK ---
-        // Uses the 'groundContactCount' which we updated in OnCollisionEnter/Exit below
+        // Raytrace to get the closest ground game object to the player
+        // Set near jumpable ground if collided with one or player close enough to jumpable ground
         if(groundChecker != null)
         {
             groundChecker.CheckGroundNear(
@@ -141,13 +141,14 @@ public class BasicControlScript : MonoBehaviour
             );
             playerGround = groundChecker.gh;
             closeToJumpableGround = groundChecker.gh.IsJumpable;
-            isGrounded = IsGrounded || groundChecker.gh.DistanceToGround < 1f;
+            isGrounded = IsGrounded || groundChecker.gh.DistanceToGround < .01f;
         }
         else
         {
-            isGrounded = IsGrounded;
+            isGrounded = IsGrounded; // If can't raytrace, just use collision
         }
 
+        // Get input
         inputForward = 0f;
         inputTurn = 0f;
 
@@ -174,28 +175,9 @@ public class BasicControlScript : MonoBehaviour
 
         if (inputForward < 0f) inputTurn = -inputTurn;
 
-        if (addForce)
-        {
-            rbody.AddForce(forceVector, ForceMode.Impulse);
-            addForce = false;
-        }
-
-        // Calculate gravity logic
-        float newGrav = gravity * (gravity + 2 * Physics.gravity.y) / (jumpGravity * gravity + 2 * Physics.gravity.y * jumpGravity + gravity) - Physics.gravity.y;
-
-        if (jumpGravity > 0 && setGrav && holdingJump)
-        {
-            if (cforce) cforce.force = new Vector3(0f, newGrav, 0f);
-            setGrav = false;
-        }
-
-        if (setGrav && !holdingJump)
-        {
-            if (cforce) cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
-            setGrav = false;
-        }
-
         // Movement
+        isRunning = shiftHeld && isMoving;
+
         float runMultiplier = isRunning ? 1.8f : 1.0f;
 
         if (isMoving)
@@ -212,6 +194,30 @@ public class BasicControlScript : MonoBehaviour
         {
             var deltaRot = Quaternion.AngleAxis(inputTurn * Time.fixedDeltaTime * turnSpeed, Vector3.up);
             rbody.MoveRotation(rbody.rotation * deltaRot);
+        }
+        
+        // Jump Logic
+        if (!appliedJump && isGrounded && jumpHeld)
+        {
+            rbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            jumpStart = Time.time;
+            appliedJump = true;
+
+            if(jumpGravity > 0)
+            {
+                float newGrav = gravity * (gravity + 2 * Physics.gravity.y) / (jumpGravity * gravity + 2 * Physics.gravity.y * jumpGravity + gravity) - Physics.gravity.y;
+                if (cforce) cforce.force = new Vector3(0f, newGrav, 0f);
+            }
+        }
+
+        if (appliedJump && (!jumpHeld || (isGrounded && Time.time - jumpStart > .01f) || Time.time - jumpStart >= maxJumpTime))
+        {
+            if(!jumpHeld)
+                Debug.Log("Jump released " + Time.time);
+            else if(isGrounded && Time.time - jumpStart > .01f) Debug.Log("Hit the ground " + Time.time);
+            else if (Time.time - jumpStart >= maxJumpTime) Debug.Log("Maximum jump time exceeded " + Time.time);
+            if (cforce) cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
+            appliedJump = false;
         }
 
         // Animator Logic
@@ -239,18 +245,17 @@ public class BasicControlScript : MonoBehaviour
         }
 
         // Footstep
-        if(isMoving || isTurning)
+        if(isMoving || isTurning) // to save resources
         {
-            for(int i = 0; i < feet.Length; i++)
+            for(int i = 0; i < 4; i++)
             {
                 if(feet[i].Foot)
                 {
                     float comparison = -0.715f; //hind foot walking comparison
-
-                    if(i > 1) //front foot comparison
+                    if(i > 1) 
                     {
-                        if(isRunning) comparison = -0.765f;
-                        else comparison = -0.705f;
+                        if(isRunning) comparison = -0.765f; //front foot running comparison
+                        else comparison = -0.705f; //front foot walking comparison
                     }
                     else if (isRunning) comparison = -0.758f; //hind foot running comparison
                     
@@ -258,14 +263,13 @@ public class BasicControlScript : MonoBehaviour
 
                     if(pos >= comparison) feet[i].StepTriggered = false;
 
-                    //trigger a step sound the first time foot y pos is below threshold
+                    //trigger a step sound the first time foot's y pos is below threshold
                     else if(!feet[i].StepTriggered)
                     {
                         if (groundChecker && groundChecker.gh.ClosestGround != null)
                         EventManager.TriggerEvent<FootstepEvent, Vector3, float, GameObject>(feet[i].Foot.transform.position, footstepWeight, groundChecker.gh.ClosestGround);
                         feet[i].StepTriggered = true;
-                        //Don't need to check the rest of the feet if one of them plays a sound
-                        break;
+                        break; //Don't need to check the rest of the feet if one of them plays a sound
                     }   
 
                 } 
@@ -277,33 +281,19 @@ public class BasicControlScript : MonoBehaviour
 
     void Update()
     {
-        if (!addForce) forceVector = Vector3.zero;
+        // Check input/time for Jumping
+        if (Input.GetKeyDown(KeyCode.Space)) jumpHeld = true;
 
-        // Jump Logic
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            jumpStart = Time.time;
-            forceVector += Vector3.up * jumpForce;
-            holdingJump = true;
-            addForce = true;
-            setGrav = true;
-        }
+        if (jumpHeld && !Input.GetKey(KeyCode.Space)) jumpHeld = false;
 
-        if ((!Input.GetKey(KeyCode.Space) || (IsGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
-        {
-            holdingJump = false;
-            setGrav = true;
-        }
-
-        isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
+        // Check input for Running
+        shiftHeld = Input.GetKey(KeyCode.LeftShift);
     }
 
     void SetAnimFloat(Animator animator, string name, float value, float dampTime, float deltaTime)
     {
-        if (animator.GetFloat(name) > .001 || value > 0)
-            animator.SetFloat(name, value, dampTime, deltaTime);
-        else if (value == 0)
-            animator.SetFloat(name, 0);
+        if (animator.GetFloat(name) > .001 || value > 0) animator.SetFloat(name, value, dampTime, deltaTime);
+        else if (value == 0) animator.SetFloat(name, 0);
     }
 
     // --- PHYSICS CALLBACKS UPDATED HERE ---
