@@ -8,6 +8,6 @@ public class FootstepEmitter : MonoBehaviour {
 
     public void ExecuteFootstep() {
 
-        EventManager.TriggerEvent<FootstepEvent, Vector3, float>(transform.position, footstepWeight);
+        //EventManager.TriggerEvent<FootstepEvent, Vector3, float>(transform.position, footstepWeight);
     }
 }

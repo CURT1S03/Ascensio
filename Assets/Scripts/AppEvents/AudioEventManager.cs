@@ -18,7 +18,7 @@ public class AudioEventManager : MonoBehaviour
     public AudioClip[] growlAudio;
     public AudioClip roarAudio;
     private UnityAction<Vector3, float> hitGroundEventListener;
-    private UnityAction<Vector3, float> footstepEventListener;
+    private UnityAction<Vector3, float, GameObject> footstepEventListener;
     private UnityAction<Vector3, float> enemyCollisionEventListener;
     private UnityAction<Vector3> hissEventListener;
     private UnityAction<Vector3> tigerGrowlEventListener;
@@ -29,7 +29,7 @@ public class AudioEventManager : MonoBehaviour
     {
         hitGroundEventListener = new UnityAction<Vector3, float>(HitGroundEventHandler);
 
-        footstepEventListener = new UnityAction<Vector3, float>(FootstepEventHandler);
+        footstepEventListener = new UnityAction<Vector3, float, GameObject>(FootstepEventHandler);
 
         enemyCollisionEventListener = new UnityAction<Vector3, float>(EnemyCollisionEventHandler);
 
@@ -54,7 +54,7 @@ public class AudioEventManager : MonoBehaviour
     void OnEnable()
     {
         EventManager.StartListening<HitGroundEvent, Vector3, float>(hitGroundEventListener);
-        EventManager.StartListening<FootstepEvent, Vector3, float>(footstepEventListener);
+        EventManager.StartListening<FootstepEvent, Vector3, float, GameObject>(footstepEventListener);
         EventManager.StartListening<EnemyCollisionEvent, Vector3, float>(enemyCollisionEventListener);
         EventManager.StartListening<HissEvent, Vector3>(hissEventListener);
         EventManager.StartListening<TigerGrowlEvent, Vector3>(tigerGrowlEventListener);
@@ -64,7 +64,7 @@ public class AudioEventManager : MonoBehaviour
     void OnDisable()
     {
         EventManager.StopListening<HitGroundEvent, Vector3, float>(hitGroundEventListener);
-        EventManager.StopListening<FootstepEvent, Vector3, float>(footstepEventListener);
+        EventManager.StopListening<FootstepEvent, Vector3, float, GameObject>(footstepEventListener);
         EventManager.StopListening<EnemyCollisionEvent, Vector3, float>(enemyCollisionEventListener);
         EventManager.StopListening<HissEvent, Vector3>(hissEventListener);
         EventManager.StopListening<TigerGrowlEvent, Vector3>(tigerGrowlEventListener);
@@ -101,7 +101,7 @@ public class AudioEventManager : MonoBehaviour
         }
     }
 
-    void FootstepEventHandler(Vector3 pos, float footstepWeight)
+    void FootstepEventHandler(Vector3 pos, float footstepWeight, GameObject ground)
     {
 
         //Get terrain
@@ -120,6 +120,13 @@ public class AudioEventManager : MonoBehaviour
             snd.audioSrc.pitch = UnityEngine.Random.Range(.9f, 1.1f) / footstepWeight * 1.2f;
 
             snd.audioSrc.volume = Mathf.Clamp(footstepWeight, 0, 2);
+
+            //set footstep array based on tag of ground character is on
+            if(ground.CompareTag("ground") || ground.CompareTag("grass"))
+            snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
+            else if (ground.CompareTag("wood"))
+            snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
+            else
             snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
 
             snd.audioSrc.minDistance = 5f;
