@@ -8,37 +8,37 @@ ModelImporter:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Boot_FinaalSurface_Color_2_1
-    second: {fileID: 2800000, guid: 048512156033ae2428fb01ebde3cc12e, type: 3}
+    second: {fileID: 2800000, guid: 37220449b1a6abd48920a4393f8a4041, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Boot_Finaal_Spec
-    second: {fileID: 2800000, guid: 8ae1792fe20488c4a9cfd26c543b314f, type: 3}
+    second: {fileID: 2800000, guid: 20f36150520e88240aef230bec459a0c, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: ClonerSurface_Color
-    second: {fileID: 2800000, guid: 6b72fb3ed93017142b589f619eeb079f, type: 3}
+    second: {fileID: 2800000, guid: e5ca119dc193b4e4a950400a117d4516, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Clouds_1b
-    second: {fileID: 2800000, guid: 18608a416dfab3448afbc28ba5110310, type: 3}
+    second: {fileID: 2800000, guid: 0e7c23fb684952d4294f14f8448a3eb6, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Clouds_2
-    second: {fileID: 2800000, guid: 87f230ab135bb5d41b24ce757f9087eb, type: 3}
+    second: {fileID: 2800000, guid: 49795cccc9758af4eacb189db37801a0, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Sky_Color
-    second: {fileID: 2800000, guid: 4c635316c0d25f147b2b99046d0c93b9, type: 3}
+    second: {fileID: 2800000, guid: 33fb0e8466c42304d99f22320cce54ce, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Subdivision_Surface2Color_4
-    second: {fileID: 2800000, guid: 19b292b3831b38042a19a7887c666af4, type: 3}
+    second: {fileID: 2800000, guid: bba58125c36f5cd4b8394e52a62724d1, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
