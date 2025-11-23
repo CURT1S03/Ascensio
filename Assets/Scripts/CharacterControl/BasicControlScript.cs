@@ -96,6 +96,42 @@ public class BasicControlScript : MonoBehaviour
 
     void FixedUpdate()
     {
+        // --- UPDATED GROUND CHECK ---
+        // Uses the 'groundContactCount' which we updated in OnCollisionEnter/Exit below
+        isGrounded = IsGrounded || CharacterCommon.CheckGroundNear(
+            this.transform.position,
+            jumpableGroundNormalMaxAngle,
+            1f,
+            1f,
+            out closeToJumpableGround
+        );
+
+        inputForward = 0f;
+        inputTurn = 0f;
+
+        if (cinput.enabled)
+        {
+            inputForward = cinput.Forward;
+            inputTurn = cinput.Turn;
+        }
+
+        const float dead = 0.05f;
+        if (Mathf.Abs(inputForward) < dead)
+        {
+            inputForward = 0f;
+            isMoving = false;
+        }
+        else isMoving = true;
+
+        if (Mathf.Abs(inputTurn) < dead)
+        {
+            inputTurn = 0f;
+            isTurning = false;
+        }
+        else isTurning = true;
+
+        if (inputForward < 0f) inputTurn = -inputTurn;
+
         if (addForce)
         {
             rbody.AddForce(forceVector, ForceMode.Impulse);
@@ -135,65 +171,6 @@ public class BasicControlScript : MonoBehaviour
             var deltaRot = Quaternion.AngleAxis(inputTurn * Time.fixedDeltaTime * turnSpeed, Vector3.up);
             rbody.MoveRotation(rbody.rotation * deltaRot);
         }
-    }
-
-    void Update()
-    {
-        if (!addForce) forceVector = Vector3.zero;
-
-        inputForward = 0f;
-        inputTurn = 0f;
-
-        if (cinput.enabled)
-        {
-            inputForward = cinput.Forward;
-            inputTurn = cinput.Turn;
-        }
-
-        const float dead = 0.05f;
-        if (Mathf.Abs(inputForward) < dead)
-        {
-            inputForward = 0f;
-            isMoving = false;
-        }
-        else isMoving = true;
-
-        if (Mathf.Abs(inputTurn) < dead)
-        {
-            inputTurn = 0f;
-            isTurning = false;
-        }
-        else isTurning = true;
-
-        if (inputForward < 0f) inputTurn = -inputTurn;
-
-        // --- UPDATED GROUND CHECK ---
-        // Uses the 'groundContactCount' which we updated in OnCollisionEnter/Exit below
-        isGrounded = IsGrounded || CharacterCommon.CheckGroundNear(
-            this.transform.position,
-            jumpableGroundNormalMaxAngle,
-            1f,
-            1f,
-            out closeToJumpableGround
-        );
-
-        // Jump Logic
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            jumpStart = Time.time;
-            forceVector += Vector3.up * jumpForce;
-            holdingJump = true;
-            addForce = true;
-            setGrav = true;
-        }
-
-        if ((!Input.GetKey(KeyCode.Space) || (IsGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
-        {
-            holdingJump = false;
-            setGrav = true;
-        }
-
-        isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
 
         // Animator Logic
         if (anim)
@@ -218,6 +195,29 @@ public class BasicControlScript : MonoBehaviour
                 anim.speed = 1f;
             }
         }
+    }
+
+    void Update()
+    {
+        if (!addForce) forceVector = Vector3.zero;
+
+        // Jump Logic
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        {
+            jumpStart = Time.time;
+            forceVector += Vector3.up * jumpForce;
+            holdingJump = true;
+            addForce = true;
+            setGrav = true;
+        }
+
+        if ((!Input.GetKey(KeyCode.Space) || (IsGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
+        {
+            holdingJump = false;
+            setGrav = true;
+        }
+
+        isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
     }
 
     void SetAnimFloat(Animator animator, string name, float value, float dampTime, float deltaTime)

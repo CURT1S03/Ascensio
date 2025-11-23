@@ -34,7 +34,7 @@ public class ThirdPersonCamera : MonoBehaviour
     protected Vector4 quaternionDeriv;
 
 
-    void LateUpdate()
+    void FixedUpdate()
     {
         if (desiredPose == null || target == null) return;
 
