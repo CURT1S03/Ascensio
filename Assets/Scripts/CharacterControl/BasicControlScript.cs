@@ -13,6 +13,12 @@ public class BasicControlScript : MonoBehaviour
     private GameObject meshObject;
     private Material mesh;
     private Color defaultColor;
+    public class Feet
+    {
+        public GameObject Foot {get;set;}
+        public bool StepTriggered {get;set;}
+    }
+    private Feet[] feet=new Feet[4];
 
     private float jumpStart = 0;
     private bool addForce = false;
@@ -24,6 +30,9 @@ public class BasicControlScript : MonoBehaviour
     private bool isRunning = false;
     private float inputForward;
     private float inputTurn;
+    public float footstepWeight = 1;
+    private CharacterCommon groundChecker;
+    public CharacterCommon.GroundHit playerGround;
 
     public Color hitColor = new Color(0f, 0f, 0f);
 
@@ -84,27 +93,61 @@ public class BasicControlScript : MonoBehaviour
             }
         }
 
+        groundChecker = GetComponent<CharacterCommon>();
+        if (groundChecker == null) Debug.Log("CharacterCommon could not be found");
+
+        playerGround = new CharacterCommon.GroundHit();
+        playerGround.DistanceToGround = 100f;
+        playerGround.IsJumpable = false;
+
+        for(int i = 0; i < 4; i++)
+        {
+            feet[i] = new Feet();
+        }
+
+        feet[0].Foot = transform.Find("Model/Kitty_001/Kitty_001_rig/Root/spine.005/shoulder.L/thigh.L/shin.L/foot.L/toe.L")?.gameObject;
+        feet[1].Foot = transform.Find("Model/Kitty_001/Kitty_001_rig/Root/spine.005/shoulder.R/thigh.R/shin.R/foot.R/toe.R")?.gameObject;
+        feet[2].Foot = transform.Find("Model/Kitty_001/Kitty_001_rig/Root/spine.005/spine.006/spine.007/front_shoulder.L/front_thigh.L/front_shin.L/front_foot.L")?.gameObject;
+        feet[3].Foot = transform.Find("Model/Kitty_001/Kitty_001_rig/Root/spine.005/spine.006/spine.007/front_shoulder.R/front_thigh.R/front_shin.R/front_foot.R")?.gameObject;
+
+        for(int i = 0; i < 4; i++)
+        {
+            if(!feet[i].Foot)
+                Debug.Log("Foot " + (i + 1) + " not found.");
+            feet[i].StepTriggered = false;
+        }
+            
         // Freeze rotation to prevent tipping
         rbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+
     }
 
     void Start()
     {
         if (anim) anim.applyRootMotion = false;
-        cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
+        if (cforce) cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
     }
 
     void FixedUpdate()
     {
         // --- UPDATED GROUND CHECK ---
         // Uses the 'groundContactCount' which we updated in OnCollisionEnter/Exit below
-        isGrounded = IsGrounded || CharacterCommon.CheckGroundNear(
-            this.transform.position,
-            jumpableGroundNormalMaxAngle,
-            1f,
-            1f,
-            out closeToJumpableGround
-        );
+        if(groundChecker != null)
+        {
+            groundChecker.CheckGroundNear(
+                this.transform.position,
+                jumpableGroundNormalMaxAngle,
+                100f,
+                1f
+            );
+            playerGround = groundChecker.gh;
+            closeToJumpableGround = groundChecker.gh.IsJumpable;
+            isGrounded = IsGrounded || groundChecker.gh.DistanceToGround < 1f;
+        }
+        else
+        {
+            isGrounded = IsGrounded;
+        }
 
         inputForward = 0f;
         inputTurn = 0f;
@@ -143,13 +186,13 @@ public class BasicControlScript : MonoBehaviour
 
         if (jumpGravity > 0 && setGrav && holdingJump)
         {
-            cforce.force = new Vector3(0f, newGrav, 0f);
+            if (cforce) cforce.force = new Vector3(0f, newGrav, 0f);
             setGrav = false;
         }
 
         if (setGrav && !holdingJump)
         {
-            cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
+            if (cforce) cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
             setGrav = false;
         }
 
@@ -195,29 +238,42 @@ public class BasicControlScript : MonoBehaviour
                 anim.speed = 1f;
             }
         }
-    }
 
-    void Update()
-    {
-        if (!addForce) forceVector = Vector3.zero;
-
-        // Jump Logic
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        // Footstep
+        if(isMoving || isTurning)
         {
-            jumpStart = Time.time;
-            forceVector += Vector3.up * jumpForce;
-            holdingJump = true;
-            addForce = true;
-            setGrav = true;
-        }
+            for(int i = 0; i < feet.Length; i++)
+            {
+                if(feet[i].Foot)
+                {
+                    float comparison = -0.715f; //hind foot walking comparison
 
-        if ((!Input.GetKey(KeyCode.Space) || (IsGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
-        {
-            holdingJump = false;
-            setGrav = true;
-        }
+                    if(i > 1) //front foot comparison
+                    {
+                        if(isRunning) comparison = -0.765f;
+                        else comparison = -0.705f;
+                    }
+                    else if (isRunning) comparison = -0.758f; //hind foot running comparison
+                    
+                    float pos = feet[i].Foot.transform.position.y - transform.position.y;
 
-        isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
+                    if(pos >= comparison) feet[i].StepTriggered = false;
+
+                    //trigger a step sound the first time foot y pos is below threshold
+                    else if(!feet[i].StepTriggered)
+                    {
+                        if (groundChecker && groundChecker.gh.ClosestGround != null)
+                        EventManager.TriggerEvent<FootstepEvent, Vector3, float, GameObject>(feet[i].Foot.transform.position, footstepWeight, groundChecker.gh.ClosestGround);
+                        feet[i].StepTriggered = true;
+                        //Don't need to check the rest of the feet if one of them plays a sound
+                        break;
+                    }   
+
+                } 
+                
+            }
+            
+        }
     }
 
     void SetAnimFloat(Animator animator, string name, float value, float dampTime, float deltaTime)
