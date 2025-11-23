@@ -210,7 +210,7 @@ public class BasicControlScript : MonoBehaviour
             }
         }
 
-        if (appliedJump && (!jumpHeld || (isGrounded && Time.time - jumpStart > .01f) || Time.time - jumpStart >= maxJumpTime))
+        if (appliedJump && (!jumpHeld || (isGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime))
         {
             if(!jumpHeld)
                 Debug.Log("Jump released " + Time.time);
