@@ -119,7 +119,6 @@ public class BasicControlScript : MonoBehaviour
             
         // Freeze rotation to prevent tipping
         rbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
-
     }
 
     void Start()
@@ -274,6 +273,29 @@ public class BasicControlScript : MonoBehaviour
             }
             
         }
+    }
+
+    void Update()
+    {
+        if (!addForce) forceVector = Vector3.zero;
+
+        // Jump Logic
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        {
+            jumpStart = Time.time;
+            forceVector += Vector3.up * jumpForce;
+            holdingJump = true;
+            addForce = true;
+            setGrav = true;
+        }
+
+        if ((!Input.GetKey(KeyCode.Space) || (IsGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
+        {
+            holdingJump = false;
+            setGrav = true;
+        }
+
+        isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
     }
 
     void SetAnimFloat(Animator animator, string name, float value, float dampTime, float deltaTime)
