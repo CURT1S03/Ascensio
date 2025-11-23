@@ -122,11 +122,11 @@ public class AudioEventManager : MonoBehaviour
             snd.audioSrc.volume = Mathf.Clamp(footstepWeight, 0, 2);
 
             //set footstep array based on tag of ground character is on
-            if(ground.CompareTag("ground") || ground.CompareTag("grass"))
+            if(ground.CompareTag("ground") || ground.CompareTag("Plane"))
             snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
-            else if (ground.CompareTag("wood"))
+            /**else if (ground.CompareTag("wood"))
             snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
-            else
+            **/else
             snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
 
             snd.audioSrc.minDistance = 5f;

@@ -40,7 +40,7 @@ public class EnemyMovement : MonoBehaviour
     private float growlCooldown = 6;
     private float growlStartTime = 0;
     private CharacterCommon groundChecker;
-    private BasicControlScript playerGroundReporter;
+    private CharacterCommon playerGroundChecker;
 
 
     void Awake()
@@ -56,14 +56,15 @@ public class EnemyMovement : MonoBehaviour
                 Debug.LogError("EnemyMovement: Cannot find GameObject with 'Player' tag and player transform is not assigned. AI will be inactive.");
                 this.enabled = false; // Disable the script if no player is found.
             }
+            else player = playerObject;
         }
 
         if(player != null)
         {
             groundChecker = GetComponent<CharacterCommon>();
             if (groundChecker == null) Debug.Log("CharacterCommon could not be found");
-            playerGroundReporter = player.GetComponent<BasicControlScript>();
-            if(playerGroundReporter == null) Debug.Log("Unable to access player control");
+            playerGroundChecker = player.GetComponent<CharacterCommon>();
+            if(playerGroundChecker == null) Debug.Log("Player CharacterCommon could not be found");
         }
 
         // --- Animation hookup (added) ---
@@ -78,7 +79,7 @@ public class EnemyMovement : MonoBehaviour
     void Update()
     {
         // If we don't have a valid player reference, do nothing.
-        if (player == null || playerGroundReporter == null) return;
+        if (player == null || playerGroundChecker == null) return;
         
         IsPlayerOnSamePlatform();
 
@@ -116,13 +117,13 @@ public class EnemyMovement : MonoBehaviour
     {
         // Raycast down from the AI to find its ground.
         // The AI can't leave their platforms so we could replace this with a public GameObject to save resources
-        groundChecker.CheckGroundNear(transform.position, 45, 5f, 1f);
+        groundChecker.CheckGroundNear(transform.position, 45, 1f, 1f);
         bool aiIsGrounded = groundChecker.gh.ClosestGround != null;
-        
-        if (playerGroundReporter.playerGround.ClosestGround != null && aiIsGrounded && playerGroundReporter.playerGround.DistanceToGround < groundCheckDistance)
+
+        if (playerGroundChecker.gh.ClosestGround != null && aiIsGrounded && playerGroundChecker.gh.DistanceToGround < groundCheckDistance)
         {
             // They are on the same platform if both are grounded AND the colliders they are standing on are the same object.
-            if (groundChecker.gh.ClosestGround == playerGroundReporter.playerGround.ClosestGround)
+            if (groundChecker.gh.ClosestGround == playerGroundChecker.gh.ClosestGround)
             {
                 // Set AI state to chase (if it is not already)
                 if (aiState != AIState.chase)
@@ -130,7 +131,7 @@ public class EnemyMovement : MonoBehaviour
                 return;
             }
             
-            if (aiState == AIState.chase && groundChecker.gh.ClosestGround != playerGroundReporter.playerGround.ClosestGround)
+            if (aiState == AIState.chase && groundChecker.gh.ClosestGround != playerGroundChecker.gh.ClosestGround)
             {
                 EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
                 //set the growl cooldown so it doesn't immediately growl if the player jumps back on the platform
@@ -140,7 +141,7 @@ public class EnemyMovement : MonoBehaviour
         }
 
         // Catches all other cases of the player leaving the platform the AI is on
-        else if (aiState == AIState.chase && (!playerGroundReporter.playerGround.ClosestGround || aiIsGrounded && groundChecker.gh.ClosestGround != playerGroundReporter.playerGround.ClosestGround || !aiIsGrounded))
+        else if (aiState == AIState.chase && (!playerGroundChecker.gh.ClosestGround || aiIsGrounded && groundChecker.gh.ClosestGround != playerGroundChecker.gh.ClosestGround || !aiIsGrounded))
         {
             EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
             growlStartTime = Time.time;
