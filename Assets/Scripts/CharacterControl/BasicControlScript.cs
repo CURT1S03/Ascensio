@@ -128,26 +128,6 @@ public class BasicControlScript : MonoBehaviour
 
     void FixedUpdate()
     {
-        // --- UPDATED GROUND CHECK ---
-        // Raytrace to get the closest ground game object to the player
-        // Set near jumpable ground if collided with one or player close enough to jumpable ground
-        if(groundChecker != null)
-        {
-            groundChecker.CheckGroundNear(
-                this.transform.position,
-                jumpableGroundNormalMaxAngle,
-                100f,
-                1f
-            );
-            playerGround = groundChecker.gh;
-            closeToJumpableGround = groundChecker.gh.IsJumpable;
-            isGrounded = IsGrounded || groundChecker.gh.DistanceToGround < .01f;
-        }
-        else
-        {
-            isGrounded = IsGrounded; // If can't raytrace, just use collision
-        }
-
         // Get input
         inputForward = 0f;
         inputTurn = 0f;
@@ -281,6 +261,26 @@ public class BasicControlScript : MonoBehaviour
 
     void Update()
     {
+        // --- UPDATED GROUND CHECK ---
+        // Raytrace to get the closest ground game object to the player
+        // Set near jumpable ground if collided with one or player close enough to jumpable ground
+        if(groundChecker != null)
+        {
+            groundChecker.CheckGroundNear(
+                this.transform.position,
+                jumpableGroundNormalMaxAngle,
+                100f,
+                1f
+            );
+            playerGround = groundChecker.gh;
+            closeToJumpableGround = groundChecker.gh.IsJumpable;
+            isGrounded = IsGrounded || groundChecker.gh.DistanceToGround < .01f;
+        }
+        else
+        {
+            isGrounded = IsGrounded; // If can't raytrace, just use collision
+        }
+
         // Check input/time for Jumping
         if (Input.GetKeyDown(KeyCode.Space)) jumpHeld = true;
 
