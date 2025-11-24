@@ -1210,7 +1210,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -488, y: 292}
+  m_AnchoredPosition: {x: -488, y: 290}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1118958939
@@ -1320,6 +1320,163 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1118958937}
+  m_CullTransparentMesh: 1
+--- !u!1 &1318755836
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1318755837}
+  - component: {fileID: 1318755839}
+  - component: {fileID: 1318755838}
+  m_Layer: 5
+  m_Name: Sound
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1318755837
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1318755836}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1803701335}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 326, y: 280}
+  m_SizeDelta: {x: 450, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1318755838
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1318755836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: 'Sounds:
+
+    Grass_Footsteps.wav by D001447733 -- https://freesound.org/s/464609/
+    -- License: Attribution 3.0
+
+    Land-grass by BNJMH -- https://freesound.org/s/795764/
+    -- License: Attribution 4.0
+
+    Tiger roar female by eZZin -- https://freesound.org/s/811790/
+    -- License: Creative Commons 0
+
+    tiger roar by videog -- https://freesound.org/s/149190/
+    -- License: Attribution 4.0
+
+    forest Charteuse by Gribiche -- https://freesound.org/s/786722/
+    -- License: Creative Commons 0
+
+    Angry cat Roo.wav by secondbody -- https://freesound.org/s/50357/
+    -- License: Attribution 4.0
+
+    Loud Lettuce hit.wav by saturdaysoundguy --
+    https://freesound.org/s/388034/ -- License: Creative Commons 0'
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 20
+  m_fontSizeBase: 20
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 256
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1318755839
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1318755836}
   m_CullTransparentMesh: 1
 --- !u!1 &1390831348
 GameObject:
@@ -1839,7 +1996,7 @@ GameObject:
   - component: {fileID: 1714636418}
   - component: {fileID: 1714636417}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Assets
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1861,8 +2018,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 165}
-  m_SizeDelta: {x: 650, y: 300}
+  m_AnchoredPosition: {x: -158, y: 158}
+  m_SizeDelta: {x: 450, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1714636417
 MonoBehaviour:
@@ -1887,15 +2044,9 @@ MonoBehaviour:
   m_text: "Assets:\nAnimals FREE - Animated Low Poly 3D Models by ithappy -- ithappystudios.com
     -- https://ithappystudios.com/free-asset-usage-policy/\nWorn wooden crate: https://assetstore.unity.com/packages/3d/props/furniture/worn-wooden-crate-246735
     \nSimple sky - cartoon assets: https://assetstore.unity.com/packages/3d/environments/simple-sky-cartoon-assets-42373
-    \nTutorial Signs:\n@Jiwon Lee via Canva.com\n\nSounds:\nGrass_Footsteps.wav by
-    D001447733 -- https://freesound.org/s/464609/ -- License: Attribution 3.0\nLand-grass
-    by BNJMH -- https://freesound.org/s/795764/ -- License: Attribution 4.0\nTiger
-    roar female by eZZin -- https://freesound.org/s/811790/ -- License: Creative
-    Commons 0\ntiger roar by videog -- https://freesound.org/s/149190/ -- License:
-    Attribution 4.0\nforest Charteuse by Gribiche -- https://freesound.org/s/786722/
-    -- License: Creative Commons 0\nAngry cat Roo.wav by secondbody -- https://freesound.org/s/50357/
-    -- License: Attribution 4.0\nLoud Lettuce hit.wav by saturdaysoundguy -- https://freesound.org/s/388034/
-    -- License: Creative Commons 0"
+    \nTutorial Signs:\n@Jiwon Lee via Canva.com\nFish: https://sketchfab.com/3d-models/fish-animated-665ab73155a44d91908519d84e5fd002\nShip
+    in cloud:\nhttps://sketchfab.com/3d-models/ship-in-clouds-c475323dc7f24e26ba2009c08c8e1941\nCloud
+    and sun:\nhttps://sketchfab.com/3d-models/cloud-sun-anim-1aac7ba1e8e84af5a8ea66aab9a9a66d\nVillage:\nhttps://sketchfab.com/3d-models/medieval-castle-with-village-5109b5e46e064790badecedf8f6d2ef6\nBeanstalk:\nhttps://sketchfab.com/3d-models/beanstalk-d66621a7afa546a5bf62517dc8410686"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2005,6 +2156,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1714636416}
+  - {fileID: 1318755837}
   - {fileID: 1118958938}
   m_Father: {fileID: 2137171319}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
