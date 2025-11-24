@@ -7,7 +7,6 @@ i. START SCENE FILE
 Main Scene: Assets/Scenes/SampleScene.unity
 Alternative scenes available:
 - Assets/Scenes/MainMenu.unity (Main menu scene)
-- Assets/Scenes/JiwonScene.unity (Additional test scene)
 
 
 ii. HOW TO PLAY AND TECHNOLOGY REQUIREMENTS TO OBSERVE
@@ -17,6 +16,7 @@ CONTROLS:
 - WASD: Move character
 - Mouse: Look around/Camera control
 - Space: Jump
+- R: Return to last safe point (Safety Net)
 - ESC: Pause menu
 
 TECHNOLOGY REQUIREMENTS TO OBSERVE:
@@ -35,6 +35,9 @@ TECHNOLOGY REQUIREMENTS TO OBSERVE:
    - Beanstalk model with physics colliders
    - Village assets and environment props
    - Ground platforms and terrain elements
+   - Bridge models (Assets/Models/bridge/)
+   - Cloud platforms (Assets/SimpleSky/)
+   - Giant Fish model (Assets/Models/fish/)
    - Location: Assets/Models/
 
 4. PHYSICS & COLLISION:
@@ -51,6 +54,11 @@ TECHNOLOGY REQUIREMENTS TO OBSERVE:
    - Git LFS for large assets
    - Proper prefab organization
    - Material and texture management
+
+7. GAMEPLAY MECHANICS:
+   - Coin collection system with visual effects
+   - Safety net/Checkpoint system (Press R)
+   - Interactive platforms: Bouncy leaves and Elevator clouds
 
 
 iii. KNOWN PROBLEM AREAS
@@ -103,14 +111,18 @@ Samantha Taing
 iv. MANIFEST OF FILES AUTHORED BY EACH TEAMMATE
 
 Curtis Cao:
-- Responsibilities: Character basic control script, character camera system, asset integration, level design
+- Responsibilities: Character basic control script, character camera system, asset integration, level design, gameplay mechanics (collectibles, checkpoints, interactive platforms)
 - Assets Implemented:
   * Assets/Scripts/CharacterControl/BasicControlScript.cs (character movement and control)
   * Assets/Scripts/PlayerCamera.cs (camera control system)
+  * Assets/Scenes/SampleScene.unity (Complete level redesign with new platforms)
+  * Assets/Scripts/Leaf/BouncyLeaf.cs (Bouncy leaf mechanic)
+  * Assets/CloudElevator.cs (Elevator cloud mechanic)
+  * Assets/Scripts/Coin/CoinPickup.cs & CoinVFX.cs (Coin collection system)
+  * Assets/Scripts/Utility/SafetyNet.cs (Safety net/checkpoint system)
+  * Assets/Models/bridge/ & Assets/Models/low-poly-bridge/ (Bridge assets)
   * Assets/Models/beanstalk/ (imported and integrated beanstalk model)
   * Assets/Models/lowpoly-village/ (imported and integrated village assets)
-  * Assets/Scenes/SampleScene.unity (first level design and layout)
-  * Various supporting environment assets and materials
  
 Zade Feng:
 - Responsibilities: Technical algorithms, AI implementation, character jump mechanics
@@ -148,8 +160,10 @@ Samantha Taing:
   * Character physics and collision scripts
 
 v. RECENT UPDATES
-- Redesigned level layout in SampleScene.unity
-- Added new bridge and environment assets
+- Redesigned level layout in SampleScene.unity with new platforms (bridges, clouds)
+- Implemented interactive elements: Bouncy Leaves and Elevator Clouds
+- Added Coin Collection system and Giant Fish reward
+- Added Safety Net system (Respawn on 'R')
 - Improved navigation mesh
 
 =============================================================================
