@@ -13,17 +13,25 @@ public class BasicControlScript : MonoBehaviour
     private GameObject meshObject;
     private Material mesh;
     private Color defaultColor;
+    public class Feet
+    {
+        public GameObject Foot {get;set;}
+        public bool StepTriggered {get;set;}
+    }
+    private Feet[] feet=new Feet[4];
 
     private float jumpStart = 0;
-    private bool addForce = false;
-    private bool holdingJump = false;
-    private bool setGrav = false;
-    private Vector3 forceVector = new Vector3(0, 0, 0);
+    private bool appliedJump = false;
+    private bool jumpHeld = false;
     private bool isTurning = false;
     private bool isMoving = false;
     private bool isRunning = false;
+    private bool shiftHeld = false;
     private float inputForward;
     private float inputTurn;
+    public float footstepWeight = 1;
+    private CharacterCommon groundChecker;
+    public CharacterCommon.GroundHit playerGround;
 
     public Color hitColor = new Color(0f, 0f, 0f);
 
@@ -84,6 +92,30 @@ public class BasicControlScript : MonoBehaviour
             }
         }
 
+        groundChecker = GetComponent<CharacterCommon>();
+        if (groundChecker == null) Debug.Log("CharacterCommon could not be found");
+
+        playerGround = new CharacterCommon.GroundHit();
+        playerGround.DistanceToGround = 100f;
+        playerGround.IsJumpable = false;
+
+        for(int i = 0; i < 4; i++)
+        {
+            feet[i] = new Feet();
+        }
+
+        feet[0].Foot = transform.Find("Model/Kitty_001/Kitty_001_rig/Root/spine.005/shoulder.L/thigh.L/shin.L/foot.L/toe.L")?.gameObject;
+        feet[1].Foot = transform.Find("Model/Kitty_001/Kitty_001_rig/Root/spine.005/shoulder.R/thigh.R/shin.R/foot.R/toe.R")?.gameObject;
+        feet[2].Foot = transform.Find("Model/Kitty_001/Kitty_001_rig/Root/spine.005/spine.006/spine.007/front_shoulder.L/front_thigh.L/front_shin.L/front_foot.L")?.gameObject;
+        feet[3].Foot = transform.Find("Model/Kitty_001/Kitty_001_rig/Root/spine.005/spine.006/spine.007/front_shoulder.R/front_thigh.R/front_shin.R/front_foot.R")?.gameObject;
+
+        for(int i = 0; i < 4; i++)
+        {
+            if(!feet[i].Foot)
+                Debug.Log("Foot " + (i + 1) + " not found.");
+            feet[i].StepTriggered = false;
+        }
+            
         // Freeze rotation to prevent tipping
         rbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
     }
@@ -91,56 +123,32 @@ public class BasicControlScript : MonoBehaviour
     void Start()
     {
         if (anim) anim.applyRootMotion = false;
-        cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
+        if (cforce) cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
     }
 
     void FixedUpdate()
     {
-        if (addForce)
+        // --- UPDATED GROUND CHECK ---
+        // Raytrace to get the closest ground game object to the player
+        // Set near jumpable ground if collided with one or player close enough to jumpable ground
+        if(groundChecker != null)
         {
-            rbody.AddForce(forceVector, ForceMode.Impulse);
-            addForce = false;
+            groundChecker.CheckGroundNear(
+                this.transform.position,
+                jumpableGroundNormalMaxAngle,
+                100f,
+                1f
+            );
+            playerGround = groundChecker.gh;
+            closeToJumpableGround = groundChecker.gh.IsJumpable;
+            isGrounded = IsGrounded || groundChecker.gh.DistanceToGround < .01f;
+        }
+        else
+        {
+            isGrounded = IsGrounded; // If can't raytrace, just use collision
         }
 
-        // Calculate gravity logic
-        float newGrav = gravity * (gravity + 2 * Physics.gravity.y) / (jumpGravity * gravity + 2 * Physics.gravity.y * jumpGravity + gravity) - Physics.gravity.y;
-
-        if (jumpGravity > 0 && setGrav && holdingJump)
-        {
-            cforce.force = new Vector3(0f, newGrav, 0f);
-            setGrav = false;
-        }
-
-        if (setGrav && !holdingJump)
-        {
-            cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
-            setGrav = false;
-        }
-
-        // Movement
-        float runMultiplier = isRunning ? 1.8f : 1.0f;
-
-        if (isMoving)
-        {
-            float moveSpeed = forwardMaxSpeed * runMultiplier;
-            rbody.MovePosition(rbody.position + inputForward * moveSpeed * Time.fixedDeltaTime * transform.forward);
-        }
-
-        // Rotation
-        float turnSpeed = isTurning && !isMoving ? turnMaxSpeed * 0.6f : turnMaxSpeed;
-        rbody.angularVelocity = Vector3.zero;
-
-        if (isTurning && turnSpeed > 0f)
-        {
-            var deltaRot = Quaternion.AngleAxis(inputTurn * Time.fixedDeltaTime * turnSpeed, Vector3.up);
-            rbody.MoveRotation(rbody.rotation * deltaRot);
-        }
-    }
-
-    void Update()
-    {
-        if (!addForce) forceVector = Vector3.zero;
-
+        // Get input
         inputForward = 0f;
         inputTurn = 0f;
 
@@ -167,33 +175,50 @@ public class BasicControlScript : MonoBehaviour
 
         if (inputForward < 0f) inputTurn = -inputTurn;
 
-        // --- UPDATED GROUND CHECK ---
-        // Uses the 'groundContactCount' which we updated in OnCollisionEnter/Exit below
-        isGrounded = IsGrounded || CharacterCommon.CheckGroundNear(
-            this.transform.position,
-            jumpableGroundNormalMaxAngle,
-            1f,
-            1f,
-            out closeToJumpableGround
-        );
+        // Movement
+        isRunning = shiftHeld && isMoving;
 
+        float runMultiplier = isRunning ? 1.8f : 1.0f;
+
+        if (isMoving)
+        {
+            float moveSpeed = forwardMaxSpeed * runMultiplier;
+            rbody.MovePosition(rbody.position + inputForward * moveSpeed * Time.fixedDeltaTime * transform.forward);
+        }
+
+        // Rotation
+        float turnSpeed = isTurning && !isMoving ? turnMaxSpeed * 0.6f : turnMaxSpeed;
+        rbody.angularVelocity = Vector3.zero;
+
+        if (isTurning && turnSpeed > 0f)
+        {
+            var deltaRot = Quaternion.AngleAxis(inputTurn * Time.fixedDeltaTime * turnSpeed, Vector3.up);
+            rbody.MoveRotation(rbody.rotation * deltaRot);
+        }
+        
         // Jump Logic
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        if (!appliedJump && isGrounded && jumpHeld)
         {
+            rbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             jumpStart = Time.time;
-            forceVector += Vector3.up * jumpForce;
-            holdingJump = true;
-            addForce = true;
-            setGrav = true;
+            appliedJump = true;
+
+            if(jumpGravity > 0)
+            {
+                float newGrav = gravity * (gravity + 2 * Physics.gravity.y) / (jumpGravity * gravity + 2 * Physics.gravity.y * jumpGravity + gravity) - Physics.gravity.y;
+                if (cforce) cforce.force = new Vector3(0f, newGrav, 0f);
+            }
         }
 
-        if ((!Input.GetKey(KeyCode.Space) || (IsGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime) && holdingJump)
+        if (appliedJump && (!jumpHeld || (isGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime))
         {
-            holdingJump = false;
-            setGrav = true;
+            if(!jumpHeld)
+                Debug.Log("Jump released " + Time.time);
+            else if(isGrounded && Time.time - jumpStart > .01f) Debug.Log("Hit the ground " + Time.time);
+            else if (Time.time - jumpStart >= maxJumpTime) Debug.Log("Maximum jump time exceeded " + Time.time);
+            if (cforce) cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
+            appliedJump = false;
         }
-
-        isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
 
         // Animator Logic
         if (anim)
@@ -218,14 +243,57 @@ public class BasicControlScript : MonoBehaviour
                 anim.speed = 1f;
             }
         }
+
+        // Footstep
+        if(isMoving || isTurning) // to save resources
+        {
+            for(int i = 0; i < 4; i++)
+            {
+                if(feet[i].Foot)
+                {
+                    float comparison = -0.715f; //hind foot walking comparison
+                    if(i > 1) 
+                    {
+                        if(isRunning) comparison = -0.765f; //front foot running comparison
+                        else comparison = -0.705f; //front foot walking comparison
+                    }
+                    else if (isRunning) comparison = -0.758f; //hind foot running comparison
+                    
+                    float pos = feet[i].Foot.transform.position.y - transform.position.y;
+
+                    if(pos >= comparison) feet[i].StepTriggered = false;
+
+                    //trigger a step sound the first time foot's y pos is below threshold
+                    else if(!feet[i].StepTriggered)
+                    {
+                        if (groundChecker && groundChecker.gh.ClosestGround != null)
+                        EventManager.TriggerEvent<FootstepEvent, Vector3, float, GameObject>(feet[i].Foot.transform.position, footstepWeight, groundChecker.gh.ClosestGround);
+                        feet[i].StepTriggered = true;
+                        break; //Don't need to check the rest of the feet if one of them plays a sound
+                    }   
+
+                } 
+                
+            }
+            
+        }
+    }
+
+    void Update()
+    {
+        // Check input/time for Jumping
+        if (Input.GetKeyDown(KeyCode.Space)) jumpHeld = true;
+
+        if (jumpHeld && !Input.GetKey(KeyCode.Space)) jumpHeld = false;
+
+        // Check input for Running
+        shiftHeld = Input.GetKey(KeyCode.LeftShift);
     }
 
     void SetAnimFloat(Animator animator, string name, float value, float dampTime, float deltaTime)
     {
-        if (animator.GetFloat(name) > .001 || value > 0)
-            animator.SetFloat(name, value, dampTime, deltaTime);
-        else if (value == 0)
-            animator.SetFloat(name, 0);
+        if (animator.GetFloat(name) > .001 || value > 0) animator.SetFloat(name, value, dampTime, deltaTime);
+        else if (value == 0) animator.SetFloat(name, 0);
     }
 
     // --- PHYSICS CALLBACKS UPDATED HERE ---

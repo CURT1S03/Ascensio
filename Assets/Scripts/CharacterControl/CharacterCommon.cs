@@ -1,24 +1,36 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 using CS4455.Utility;
 
-public class CharacterCommon {
+public class CharacterCommon : MonoBehaviour{
+    public class GroundHit
+    {
+        public float DistanceToGround {get;set;}
+        public GameObject ClosestGround {get;set;}
+        public bool IsJumpable {get;set;}
+    }
+    public GroundHit gh;
+
+    void Awake()
+    {
+        gh = new GroundHit();
+        gh.DistanceToGround = 100f;
+        gh.IsJumpable = false;
+    }
 
 
-
-    public static bool CheckGroundNear(
+    public void CheckGroundNear(
         Vector3 charPos,       
         float jumpableGroundNormalMaxAngle, 
         float rayDepth, //how far down from charPos will we look for ground?
-        float rayOriginOffset, //charPos near bottom of collider, so need a fudge factor up away from there
-        out bool isJumpable
+        float rayOriginOffset //charPos near bottom of collider, so need a fudge factor up away from there
     ) 
     {
-
-        bool ret = false;
         bool _isJumpable = false;
+        gh.DistanceToGround = 1000f;
 
 
         float totalRayLen = rayOriginOffset + rayDepth;
@@ -29,20 +41,25 @@ public class CharacterCommon {
 
 
         RaycastHit[] hits = Physics.RaycastAll(ray, totalRayLen, layerMask);
+        Array.Sort(hits, (RaycastHit x, RaycastHit y) => x.distance.CompareTo(y.distance));
 
         RaycastHit groundHit = new RaycastHit();
 
         foreach(RaycastHit hit in hits)
         {
 
-            if (hit.collider.gameObject.CompareTag("ground"))
+            if (hit.collider.gameObject.CompareTag("ground") || hit.collider.gameObject.CompareTag("Plane"))
             {           
-
-                ret = true;
 
                 groundHit = hit;
 
                 _isJumpable = Vector3.Angle(Vector3.up, hit.normal) < jumpableGroundNormalMaxAngle;
+
+                gh.ClosestGround = hit.collider.gameObject;
+                float distance = hit.distance - rayOriginOffset - 1;
+                if (distance < .001) distance = 0;
+                gh.DistanceToGround = distance;
+                gh.IsJumpable = _isJumpable;
 
                 break; //only need to find the ground once
 
@@ -52,8 +69,6 @@ public class CharacterCommon {
 
         Helper.DrawRay(ray, totalRayLen, hits.Length > 0, groundHit, Color.magenta, Color.green);
 
-        isJumpable = _isJumpable;
-
-        return ret;
     }
+
 }

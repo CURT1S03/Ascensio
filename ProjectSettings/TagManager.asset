@@ -9,6 +9,7 @@ TagManager:
   - obstacle
   - Coin
   - Plane
+  - Bound
   layers:
   - Default
   - TransparentFX

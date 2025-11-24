@@ -11,8 +11,8 @@ public class EnemyMovement : MonoBehaviour
 {
     // --- Public Variables ---
     [Header("Targeting")]
-    [Tooltip("A reference to the player's transform.")]
-    public Transform player;
+    [Tooltip("A reference to the player GameObject.")]
+    public GameObject player;
 
     [Header("Platform Detection")]
     [Tooltip("The layermask used to identify ground platforms.")]
@@ -39,8 +39,9 @@ public class EnemyMovement : MonoBehaviour
     private NavMeshAgent navMeshAgent;
     private float growlCooldown = 6;
     private float growlStartTime = 0;
+    private CharacterCommon groundChecker;
+    private CharacterCommon playerGroundChecker;
 
-// remove me
 
     void Awake()
     {
@@ -50,22 +51,27 @@ public class EnemyMovement : MonoBehaviour
         if (player == null)
         {
             GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-            if (playerObject != null)
-            {
-                player = playerObject.transform;
-            }
-            else
+            if (!playerObject)
             {
                 Debug.LogError("EnemyMovement: Cannot find GameObject with 'Player' tag and player transform is not assigned. AI will be inactive.");
                 this.enabled = false; // Disable the script if no player is found.
             }
+            else player = playerObject;
+        }
+
+        if(player != null)
+        {
+            groundChecker = GetComponent<CharacterCommon>();
+            if (groundChecker == null) Debug.Log("CharacterCommon could not be found");
+            playerGroundChecker = player.GetComponent<CharacterCommon>();
+            if(playerGroundChecker == null) Debug.Log("Player CharacterCommon could not be found");
         }
 
         // --- Animation hookup (added) ---
         if (anim == null)
             anim = GetComponentInChildren<Animator>(true);
         if (anim != null)
-            anim.applyRootMotion = false; // AI (NavMeshAgent) controls movement, not animation
+            anim.applyRootMotion = false; // AI (NavMeshAgent) controls movement, not animation        
 
         aiState = AIState.passive;
     }
@@ -73,8 +79,8 @@ public class EnemyMovement : MonoBehaviour
     void Update()
     {
         // If we don't have a valid player reference, do nothing.
-        if (player == null) return;
-
+        if (player == null || playerGroundChecker == null) return;
+        
         IsPlayerOnSamePlatform();
 
         switch (aiState)
@@ -82,7 +88,7 @@ public class EnemyMovement : MonoBehaviour
             case AIState.chase:
                 // If they are on the same platform, chase the player.
                 navMeshAgent.isStopped = false; // Ensure the agent can move.
-                navMeshAgent.SetDestination(player.position);
+                navMeshAgent.SetDestination(player.transform.position);
 
                 //Only growl if it's been enough time since the last one
                 if (Time.time - growlStartTime > growlCooldown)
@@ -110,30 +116,22 @@ public class EnemyMovement : MonoBehaviour
     private void IsPlayerOnSamePlatform()
     {
         // Raycast down from the AI to find its ground.
-        RaycastHit aiHit;
-        bool aiIsGrounded = Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out aiHit, groundCheckDistance, groundLayer);
+        // The AI can't leave their platforms so we could replace this with a public GameObject to save resources
+        groundChecker.CheckGroundNear(transform.position, 45, 1f, 1f);
+        bool aiIsGrounded = groundChecker.gh.ClosestGround != null;
 
-        // Raycast down from the Player to find its ground.
-        RaycastHit playerHit;
-        bool hit = Physics.Raycast(player.position, transform.TransformDirection(Vector3.down), out playerHit, Mathf.Infinity, groundLayer);
-    
-        //Debug.Log("Distance to hit: " + Vector3.Distance(player.position, playerHit.point));
-        if (hit)
+        if (playerGroundChecker.gh.ClosestGround != null && aiIsGrounded && playerGroundChecker.gh.DistanceToGround < groundCheckDistance)
         {
-            bool playerIsGrounded = playerHit.distance < groundCheckDistance;
-            //Debug.DrawRay(player.position, transform.TransformDirection(Vector3.down) * playerHit.distance, Color.red);
             // They are on the same platform if both are grounded AND the colliders they are standing on are the same object.
-            if (aiIsGrounded && playerIsGrounded && aiHit.collider.gameObject == playerHit.collider.gameObject)
+            if (groundChecker.gh.ClosestGround == playerGroundChecker.gh.ClosestGround)
             {
                 // Set AI state to chase (if it is not already)
                 if (aiState != AIState.chase)
                     aiState = AIState.chase;
                 return;
             }
-
-            //Debug.Log("Hit: " + playerHit.point);
             
-            if (aiState == AIState.chase && aiHit.collider.gameObject != playerHit.collider.gameObject)
+            if (aiState == AIState.chase && groundChecker.gh.ClosestGround != playerGroundChecker.gh.ClosestGround)
             {
                 EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
                 //set the growl cooldown so it doesn't immediately growl if the player jumps back on the platform
@@ -142,9 +140,8 @@ public class EnemyMovement : MonoBehaviour
             }
         }
 
-        // If the player raycast doesn't hit the same frame that the aiState is chase, play roar
-        // maybe this will cause problems, but it works for some unknown reason so I'm leaving it in for now
-        else if (aiState == AIState.chase)
+        // Catches all other cases of the player leaving the platform the AI is on
+        else if (aiState == AIState.chase && (!playerGroundChecker.gh.ClosestGround || aiIsGrounded && groundChecker.gh.ClosestGround != playerGroundChecker.gh.ClosestGround || !aiIsGrounded))
         {
             EventManager.TriggerEvent<TigerRoarEvent, Vector3>(this.gameObject.transform.position);
             growlStartTime = Time.time;
