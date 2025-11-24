@@ -60,8 +60,10 @@ iii. KNOWN PROBLEM AREAS
 
 CURRENT KNOWN ISSUES:
 1. The starts to the treehouse has some collider issue causing the character difficult to walk up.
-2. The village is for backgournd only, it has no gameplay.
+2. The village is for background only, it has no gameplay.
 3. Camera needs to follow better on the character when it backs or turns. 
+4. Camera collides and blocks view of objects covering the camera
+5. There are some collider issues with the cloud implementations
 
 POTENTIAL AREAS FOR IMPROVEMENT:
 1. Animation transitions could be smoother
@@ -132,11 +134,17 @@ Riley Vaupel:
 Jiwon Lee:
 - Responsibilities: UI system design and implementation
 - Assets Implemented:
-  * Assets/Scripts/PauseMenuToggle.cs (pause menu functionality)
-  * Assets/Scripts/Utility/GameStarter.cs (game state management)
+  * Assets/Scripts/SceneUI/PauseMenuToggle.cs (pause menu functionality)
+  * Assets/Scripts/SceneUI/GameStarter.cs (game state management)
   * Assets/Scenes/MainMenu.unity (main menu scene)
   * UI canvas components and menu systems
   * TextMesh Pro UI integration
+  * Assets/Scenes/FishWinScene.unity (1 of 2 win screens)
+  * Assets/Scenes/BoatWinScene.unity (1 of 2 win screens)
+  * Assets/CreditShow.cs (showing the credits in main menu functionality)
+  * Assets/Images (Tutorial Signs and Sign designs implementation)
+  * Assets/Scripts/SceneUI/WinScreen.cs (win screen functionality)
+  * Assets/Scripts/SceneUI/SceneTransition (fade to black scene transition functionality)
  
 Samantha Taing:
 - Responsibilities: Main character model, animations, and character scripts
