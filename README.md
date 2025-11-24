@@ -136,11 +136,14 @@ Jiwon Lee:
   * TextMesh Pro UI integration
  
 Samantha Taing:
-- Responsibilities: Main character model, animations, and character scripts
+- Responsibilities: Main character model, animations, character scripts, movable crate model, day/night skybox lighting
 - Assets Implemented:
   * Assets/ithappy/Animals_FREE/Prefabs/Kitty_001.prefab (main character model)
   * Assets/ithappy/Animals_FREE/Animations/Animation_Controllers/Kitty.controller (character animation controller)
-  * Assets/ithappy/Animals_FREE/Scripts/CreatureMover.cs (character movement script)
+  * Assets/Models/Hocker/Worn wooden crate/Box/Prefabs/box_low (1).prefab (wooden crate model)
+  * Assets/Scripts/AppEvents/DayNightCycle.cs (day/night skybox lighting)
+  * Assets/SimpleSky (cloud model integration)
+  * Assets/Scripts/CharacterControl/BasicControlScript.cs (main character movement/animation)
   * Character animation files (idle, walk, run animations)
   * Character physics and collision scripts
 
