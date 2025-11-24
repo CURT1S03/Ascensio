@@ -48,7 +48,7 @@ public class CharacterCommon : MonoBehaviour{
         foreach(RaycastHit hit in hits)
         {
 
-            if (hit.collider.gameObject.CompareTag("ground") || hit.collider.gameObject.CompareTag("Plane"))
+            if (hit.collider.gameObject.CompareTag("ground") || hit.collider.gameObject.CompareTag("Plane") || hit.collider.gameObject.CompareTag("Wood"))
             {           
 
                 groundHit = hit;
@@ -67,7 +67,7 @@ public class CharacterCommon : MonoBehaviour{
 
         }
 
-        Helper.DrawRay(ray, totalRayLen, hits.Length > 0, groundHit, Color.magenta, Color.green);
+        //Helper.DrawRay(ray, totalRayLen, hits.Length > 0, groundHit, Color.magenta, Color.green);
 
     }
 

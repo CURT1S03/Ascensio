@@ -177,7 +177,7 @@ public class BasicControlScript : MonoBehaviour
         }
         
         // Jump Logic
-        if (!appliedJump && isGrounded && jumpHeld)
+        if (!appliedJump && IsGrounded && jumpHeld && rbody.linearVelocity.y < .001)
         {
             rbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             jumpStart = Time.time;
@@ -190,12 +190,8 @@ public class BasicControlScript : MonoBehaviour
             }
         }
 
-        if (appliedJump && (!jumpHeld || (isGrounded && Time.time - jumpStart > .05f) || Time.time - jumpStart >= maxJumpTime))
+        if (appliedJump && (!jumpHeld || isGrounded || Time.time - jumpStart >= maxJumpTime) && Time.time - jumpStart > .05f)
         {
-            if(!jumpHeld)
-                Debug.Log("Jump released " + Time.time);
-            else if(isGrounded && Time.time - jumpStart > .01f) Debug.Log("Hit the ground " + Time.time);
-            else if (Time.time - jumpStart >= maxJumpTime) Debug.Log("Maximum jump time exceeded " + Time.time);
             if (cforce) cforce.force = new Vector3(0f, gravity - Physics.gravity.y, 0f);
             appliedJump = false;
         }
@@ -246,7 +242,7 @@ public class BasicControlScript : MonoBehaviour
                     //trigger a step sound the first time foot's y pos is below threshold
                     else if(!feet[i].StepTriggered)
                     {
-                        if (groundChecker && groundChecker.gh.ClosestGround != null)
+                        if (groundChecker && groundChecker.gh.ClosestGround != null && groundChecker.gh.DistanceToGround < .7f)
                         EventManager.TriggerEvent<FootstepEvent, Vector3, float, GameObject>(feet[i].Foot.transform.position, footstepWeight, groundChecker.gh.ClosestGround);
                         feet[i].StepTriggered = true;
                         break; //Don't need to check the rest of the feet if one of them plays a sound
@@ -282,7 +278,7 @@ public class BasicControlScript : MonoBehaviour
         }
 
         // Check input/time for Jumping
-        if (Input.GetKeyDown(KeyCode.Space)) jumpHeld = true;
+        if (Input.GetKeyDown(KeyCode.Space) && IsGrounded) jumpHeld = true;
 
         if (jumpHeld && !Input.GetKey(KeyCode.Space)) jumpHeld = false;
 
@@ -301,7 +297,7 @@ public class BasicControlScript : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         // UPDATED: Added check for "Plane" tag using CompareTag (better performance)
-        if (collision.gameObject.CompareTag("ground") || collision.gameObject.CompareTag("Plane"))
+        if (collision.gameObject.CompareTag("ground") || collision.gameObject.CompareTag("Plane") || collision.gameObject.CompareTag("Wood"))
             ++groundContactCount;
 
         if (collision.gameObject.CompareTag("enemy"))
@@ -316,7 +312,7 @@ public class BasicControlScript : MonoBehaviour
     void OnCollisionExit(Collision collision)
     {
         // UPDATED: Added check for "Plane" tag
-        if (collision.gameObject.CompareTag("ground") || collision.gameObject.CompareTag("Plane"))
+        if (collision.gameObject.CompareTag("ground") || collision.gameObject.CompareTag("Plane") || collision.gameObject.CompareTag("Wood"))
             --groundContactCount;
 
         if (collision.gameObject.CompareTag("enemy"))
