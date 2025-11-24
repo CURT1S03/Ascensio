@@ -3,6 +3,8 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
+
+
 public class SceneTransition : MonoBehaviour
 {
     public Animator transitionAnimator;
@@ -10,7 +12,17 @@ public class SceneTransition : MonoBehaviour
 
     public void LoadNextScene()
     {
-        StartCoroutine(LoadScene("WinScene"));
+        GameManager gameManager = FindAnyObjectByType(typeof(GameManager)) as GameManager;
+        Debug.Log("hello: " + gameManager.GetTotalCoins());
+        Debug.Log("bye: " + gameManager.GetCollectedCoins());
+        if (gameManager.GetTotalCoins() <= gameManager.GetCollectedCoins())
+        {
+            StartCoroutine(LoadScene("FishWinScene"));
+        }
+        else
+        {
+            StartCoroutine(LoadScene("BoatWinScene"));
+        }
     }
 
     private IEnumerator LoadScene(string sceneName)

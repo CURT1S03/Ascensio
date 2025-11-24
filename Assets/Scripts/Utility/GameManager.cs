@@ -3,8 +3,10 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public GameObject prizeObject; // Drag your prize/win text here
+
+    public GameObject disabledObject;
     private int totalCoins;
-    private int collectedCoins = 0;
+    public int collectedCoins = 0;
 
     void Start()
     {
@@ -27,10 +29,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int GetTotalCoins()
+    {
+        return totalCoins;
+    }
+
+    public int GetCollectedCoins()
+    {
+        return collectedCoins;
+    }
+
     void WinGame()
     {
         Debug.Log("YOU WIN!");
         // Activate the prize
         if (prizeObject != null) prizeObject.SetActive(true);
+        if (disabledObject != null) disabledObject.SetActive(false);
     }
 }
