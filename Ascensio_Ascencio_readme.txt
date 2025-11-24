@@ -26,7 +26,7 @@ TECHNOLOGY REQUIREMENTS TO OBSERVE:
    - Multiple animal characters with idle, walk, run animations
    - Character controller with refined movement
    - Animation controllers for: Kitty and Tiger
-   - Location: Assets/ithappy/Animals_FREE/
+   - Location: Assets/Models/ithappy/Animals_FREE/
 
 2. CAMERA SYSTEM:
    - Third-person camera following player
@@ -43,6 +43,7 @@ TECHNOLOGY REQUIREMENTS TO OBSERVE:
    - Character physics and collision detection
    - Ground detection system
    - Platform interaction
+   - Movable box interaction
 
 5. UI SYSTEM:
    - Pause menu functionality
@@ -59,7 +60,7 @@ iii. KNOWN PROBLEM AREAS
 =============================================================================
 
 CURRENT KNOWN ISSUES:
-1. The starts to the treehouse has some collider issue causing the character difficult to walk up.
+1. The stairs to the treehouse has some collider issue causing the character difficult to walk up.
 2. The village is for background only, it has no gameplay.
 3. Camera needs to follow better on the character when it backs or turns. 
 4. Camera collides and blocks view of objects covering the camera
@@ -80,19 +81,18 @@ TESTING RECOMMENDATIONS:
 PROJECT STRUCTURE NOTES
 =============================================================================
 Assets/
-  ├── Models/               (3D models and textures)
+  ├── Models/               (3D models, textures, and animation controllers)
   ├── Scenes/               (Unity scene files)
   ├── Scripts/              (C# scripts)
-  ├── ithappy/Animals_FREE/ (Character animations and controllers)
   ├── Material/             (Materials)
   └── TextMesh Pro/         (UI text system)
 
 =============================================================================
 VERSION INFORMATION
 =============================================================================
-Unity Version: 6000.0fff1
+Unity Version: 6000.0.55f1
 Git Repository: https://github.gatech.edu/jlee3973/Ascencio
-Last Updated: October 27, 2025
+Last Updated: November 24, 2025
 Branch: main
 
 =============================================================================
@@ -127,9 +127,21 @@ Zade Feng:
 Riley Vaupel:
 - Responsibilities: Project organization, sound design, audio implementation
 - Assets Implemented:
-  * Audio system scripts
-  * Sound effect assets and audio management
+  * Assets/Scripts/AppEvents/AudioEventManager.cs (sound effect management)
+  * Assets/Scripts/AppEvents/EnemyCollisionEvent.cs (trigger hit sound)
+  * Assets/Scripts/AppEvents/FootstepEvent.cs (trigger footstep sound)
+  * Assets/Scripts/AppEvents/HissEvent.cs (trigger hiss sound)
+  * Assets/Scripts/AppEvents/HitGroundEvent.cs (trigger land sound)
+  * Assets/Scripts/AppEvents/HitGroundReporter.cs (report sound on object collision)
+  * Assets/Scripts/AppEvents/TigerGrowlEvent.cs (trigger tiger growl sound)
+  * Assets/Scripts/AppEvents/TigerRoarEvent.cs (trigger tiger roar sound)
+  * Assets/Scripts/CharacterControl/BasicControlScript.cs (character movement)
+  * Assets/Scripts/CharacterControl/CharacterCommon.cs (ground detection)
+  * Assets/Scripts/CharacterControl/EnemyMovement.cs (Enemy AI behavior)
+  * Assets/Scripts/Utility/MusicBehavior.cs (background music behavior)
+  * All sounds files in Assets/Sound/
   * Project documentation and goal specifications
+  * World bounds to keep player in playable area
  
 Jiwon Lee:
 - Responsibilities: UI system design and implementation
