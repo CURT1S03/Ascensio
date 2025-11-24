@@ -10,7 +10,7 @@ public class HitGroundReporter : MonoBehaviour
         if (c.impulse.magnitude > 0.5f)
         {
             //we'll just use the first contact point for simplicity
-            EventManager.TriggerEvent<HitGroundEvent, Vector3, float>(c.contacts[0].point, c.impulse.magnitude);
+            EventManager.TriggerEvent<HitGroundEvent, Vector3, float, GameObject>(c.contacts[0].point, c.impulse.magnitude, this.gameObject);
         }
 
 

@@ -10,6 +10,7 @@ public class AudioEventManager : MonoBehaviour
 
     public EventSound3D eventSound3DPrefab;
     public AudioClip playerLandsAudio;
+    public AudioClip playerLandsAudio2;
     public AudioClip[] grassStepAudio;
     public AudioClip[] hardStepAudio;
     public AudioClip hitAudio;
@@ -17,7 +18,7 @@ public class AudioEventManager : MonoBehaviour
     private EventSound3D hissEventSound;
     public AudioClip[] growlAudio;
     public AudioClip roarAudio;
-    private UnityAction<Vector3, float> hitGroundEventListener;
+    private UnityAction<Vector3, float, GameObject> hitGroundEventListener;
     private UnityAction<Vector3, float, GameObject> footstepEventListener;
     private UnityAction<Vector3, float> enemyCollisionEventListener;
     private UnityAction<Vector3> hissEventListener;
@@ -27,7 +28,7 @@ public class AudioEventManager : MonoBehaviour
 
     void Awake()
     {
-        hitGroundEventListener = new UnityAction<Vector3, float>(HitGroundEventHandler);
+        hitGroundEventListener = new UnityAction<Vector3, float, GameObject>(HitGroundEventHandler);
 
         footstepEventListener = new UnityAction<Vector3, float, GameObject>(FootstepEventHandler);
 
@@ -53,7 +54,7 @@ public class AudioEventManager : MonoBehaviour
 
     void OnEnable()
     {
-        EventManager.StartListening<HitGroundEvent, Vector3, float>(hitGroundEventListener);
+        EventManager.StartListening<HitGroundEvent, Vector3, float, GameObject>(hitGroundEventListener);
         EventManager.StartListening<FootstepEvent, Vector3, float, GameObject>(footstepEventListener);
         EventManager.StartListening<EnemyCollisionEvent, Vector3, float>(enemyCollisionEventListener);
         EventManager.StartListening<HissEvent, Vector3>(hissEventListener);
@@ -63,7 +64,7 @@ public class AudioEventManager : MonoBehaviour
 
     void OnDisable()
     {
-        EventManager.StopListening<HitGroundEvent, Vector3, float>(hitGroundEventListener);
+        EventManager.StopListening<HitGroundEvent, Vector3, float, GameObject>(hitGroundEventListener);
         EventManager.StopListening<FootstepEvent, Vector3, float, GameObject>(footstepEventListener);
         EventManager.StopListening<EnemyCollisionEvent, Vector3, float>(enemyCollisionEventListener);
         EventManager.StopListening<HissEvent, Vector3>(hissEventListener);
@@ -71,7 +72,7 @@ public class AudioEventManager : MonoBehaviour
         EventManager.StopListening<TigerRoarEvent, Vector3>(tigerRoarEventListener);
     }
 
-    void HitGroundEventHandler(Vector3 worldPos, float collisionMagnitude)
+    void HitGroundEventHandler(Vector3 worldPos, float collisionMagnitude, GameObject ground)
     {
         //AudioSource.PlayClipAtPoint(this.explosionAudio, worldPos, 1f);
 
@@ -81,15 +82,17 @@ public class AudioEventManager : MonoBehaviour
             float minForce = 6f;
             //force required for maximum land sound effect volume
             float maxForce = 60f;
-            float maxVolume = 1f;
+            float maxVolume = .5f;
             if (collisionMagnitude > minForce)
             {
                 //TO-DO: add terrain checking (see footstepEventHandler)
                 EventSound3D snd = Instantiate(eventSound3DPrefab, worldPos, Quaternion.identity, null);
-
+                snd.audioSrc.pitch = UnityEngine.Random.Range(.85f, 1.2f) * 1.3f;
                 //Use a linear scale to modify volume based on collision magnitude
-                snd.audioSrc.volume = (Mathf.Min(collisionMagnitude, maxForce) - minForce) / (maxForce - minForce) * maxVolume;
-                snd.audioSrc.clip = this.playerLandsAudio;
+                snd.audioSrc.volume = Mathf.Clamp((Mathf.Min(collisionMagnitude, maxForce) - minForce) / (maxForce - minForce) * maxVolume, .02f, maxVolume);;
+                if(ground.CompareTag("ground") || ground.CompareTag("Plane"))
+                    snd.audioSrc.clip = this.playerLandsAudio;
+                else snd.audioSrc.clip = this.hitAudio;
 
                 //Debug.Log(Time.time + " land magnitude: " + collisionMagnitude);
 
@@ -124,11 +127,8 @@ public class AudioEventManager : MonoBehaviour
             //set footstep array based on tag of ground character is on
             if(ground.CompareTag("ground") || ground.CompareTag("Plane"))
             snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
-            /**else if (ground.CompareTag("wood"))
-            snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
-            **/else
-            snd.audioSrc.clip = this.grassStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
-
+            else snd.audioSrc.clip = this.hardStepAudio[UnityEngine.Random.Range(0, grassStepAudio.Length)];
+            
             snd.audioSrc.minDistance = 5f;
             snd.audioSrc.maxDistance = 100f;
 

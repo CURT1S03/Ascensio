@@ -10,6 +10,7 @@ TagManager:
   - Coin
   - Plane
   - Bound
+  - Wood
   layers:
   - Default
   - TransparentFX
