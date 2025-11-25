@@ -127,9 +127,10 @@ Curtis Cao:
 Zade Feng:
 - Responsibilities: Technical algorithms, AI implementation, character jump mechanics
 - Assets Implemented:
-  * Jump functionality implementation in character controller
+  * Assets/Scripts/CharacterControl/BasicControlScript.cs (Jump functionality implementation in character controller)
   * Technical algorithm scripts for character physics
-  * AI-related code components
+  * Assets/Scripts/CharacterControl/EnemyMovement.cs (AI-related code components)
+  * Added particle effects
  
 Riley Vaupel:
 - Responsibilities: Project organization, sound design, audio implementation
