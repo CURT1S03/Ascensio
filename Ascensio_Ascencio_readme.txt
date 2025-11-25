@@ -1,5 +1,5 @@
 =============================================================================
-Ascencio_readme.txt
+Ascensio_Ascencio_readme.txt
 Assignment Packaging and Submission Requirements
 =============================================================================
 
@@ -9,7 +9,6 @@ i. START SCENE FILE
 Main Scene: Assets/Scenes/SampleScene.unity
 Alternative scenes available:
 - Assets/Scenes/MainMenu.unity (Main menu scene)
-- Assets/Scenes/JiwonScene.unity (Additional test scene)
 
 =============================================================================
 ii. HOW TO PLAY AND TECHNOLOGY REQUIREMENTS TO OBSERVE
@@ -19,6 +18,7 @@ CONTROLS:
 - WASD: Move character
 - Mouse: Look around/Camera control
 - Space: Jump
+- R: Return to last safe point (Safety Net)
 - ESC: Pause menu
 
 TECHNOLOGY REQUIREMENTS TO OBSERVE:
@@ -37,6 +37,9 @@ TECHNOLOGY REQUIREMENTS TO OBSERVE:
    - Beanstalk model with physics colliders
    - Village assets and environment props
    - Ground platforms and terrain elements
+   - Bridge models (Assets/Models/bridge/)
+   - Cloud platforms (Assets/SimpleSky/)
+   - Giant Fish model (Assets/Models/fish/)
    - Location: Assets/Models/
 
 4. PHYSICS & COLLISION:
@@ -108,21 +111,26 @@ Samantha Taing
 iv. MANIFEST OF FILES AUTHORED BY EACH TEAMMATE
 =============================================================================
 Curtis Cao:
-- Responsibilities: Character basic control script, character camera system, asset integration, level design
+- Responsibilities: Character basic control script, character camera system, asset integration, level design, gameplay mechanics (collectibles, checkpoints, interactive platforms)
 - Assets Implemented:
   * Assets/Scripts/CharacterControl/BasicControlScript.cs (character movement and control)
   * Assets/Scripts/PlayerCamera.cs (camera control system)
+  * Assets/Scenes/SampleScene.unity (Complete level redesign with new platforms)
+  * Assets/Scripts/Leaf/BouncyLeaf.cs (Bouncy leaf mechanic)
+  * Assets/CloudElevator.cs (Elevator cloud mechanic)
+  * Assets/Scripts/Coin/CoinPickup.cs & CoinVFX.cs (Coin collection system)
+  * Assets/Scripts/Utility/SafetyNet.cs (Safety net/checkpoint system)
+  * Assets/Models/bridge/ & Assets/Models/low-poly-bridge/ (Bridge assets)
   * Assets/Models/beanstalk/ (imported and integrated beanstalk model)
   * Assets/Models/lowpoly-village/ (imported and integrated village assets)
-  * Assets/Scenes/SampleScene.unity (first level design and layout)
-  * Various supporting environment assets and materials
  
 Zade Feng:
 - Responsibilities: Technical algorithms, AI implementation, character jump mechanics
 - Assets Implemented:
-  * Jump functionality implementation in character controller
+  * Assets/Scripts/CharacterControl/BasicControlScript.cs (Jump functionality implementation in character controller)
   * Technical algorithm scripts for character physics
-  * AI-related code components
+  * Assets/Scripts/CharacterControl/EnemyMovement.cs (AI-related code components)
+  * Added particle effects
  
 Riley Vaupel:
 - Responsibilities: Project organization, sound design, audio implementation
@@ -159,13 +167,24 @@ Jiwon Lee:
   * Assets/Scripts/SceneUI/SceneTransition (fade to black scene transition functionality)
  
 Samantha Taing:
-- Responsibilities: Main character model, animations, and character scripts
+- Responsibilities: Main character model, animations, character scripts, movable crate model, day/night skybox lighting
 - Assets Implemented:
-  * Assets/ithappy/Animals_FREE/Prefabs/Kitty_001.prefab (main character model)
-  * Assets/ithappy/Animals_FREE/Animations/Animation_Controllers/Kitty.controller (character animation controller)
-  * Assets/ithappy/Animals_FREE/Scripts/CreatureMover.cs (character movement script)
+  * Assets/Models/ithappy/Animals_FREE/Prefabs/Kitty_001.prefab (main character model)
+  * Assets/Models/ithappy/Animals_FREE/Animations/Animation_Controllers/Kitty.controller (character animation controller)
+  * Assets/Models/Hocker/Worn wooden crate/Box/Prefabs/box_low (1).prefab (wooden crate model)
+  * Assets/Scripts/AppEvents/DayNightCycle.cs (day/night skybox lighting)
+  * Assets/SimpleSky (cloud model integration)
+  * Assets/Scripts/CharacterControl/BasicControlScript.cs (main character movement/animation)
   * Character animation files (idle, walk, run animations)
   * Character physics and collision scripts
+
+v. RECENT UPDATES
+- Redesigned level layout in SampleScene.unity with new platforms (bridges, clouds)
+- Implemented interactive elements: Bouncy Leaves and Elevator Clouds
+- Added Coin Collection system and Giant Fish reward
+- Added Safety Net system (Respawn on 'R')
+- Improved navigation mesh
+
 =============================================================================
 END OF README
 =============================================================================
